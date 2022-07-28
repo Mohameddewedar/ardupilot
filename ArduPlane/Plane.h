@@ -164,7 +164,14 @@ public:
     Plane(void);
 
 private:
-
+    
+    // Custom Guidance Tracking Code
+    // Bounding Box Variables
+    int guidance_bbox_x = -1;
+    int guidance_bbox_y = -1;
+    int guidance_bbox_w = -1;
+    int guidance_bbox_h = -1;
+    
     // key aircraft parameters passed to multiple libraries
     AP_Vehicle::FixedWing aparm;
 

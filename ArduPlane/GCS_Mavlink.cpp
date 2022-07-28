@@ -416,6 +416,13 @@ bool GCS_MAVLINK_Plane::try_send_message(enum ap_message id)
     case MSG_LANDING:
         plane.landing.send_landing_message(chan);
         break;
+    case MSG_TRACKED_TARGET_POSITION:
+        mavlink_msg_tracked_target_position_send(chan,
+                                                 plane.guidance_bbox_x,
+                                                 plane.guidance_bbox_y,
+                                                 plane.guidance_bbox_w,
+                                                 plane.guidance_bbox_h);
+        break;
     default:
         return GCS_MAVLINK::try_send_message(id);
     }
@@ -600,8 +607,7 @@ static const ap_message STREAM_PARAMS_msgs[] = {
     MSG_NEXT_PARAM
 };
 static const ap_message STREAM_ADSB_msgs[] = {
-    MSG_ADSB_VEHICLE,
-    MSG_AIS_VESSEL,
+    MSG_ADSB_VEHICLE
 };
 
 const struct GCS_MAVLINK::stream_entries GCS_MAVLINK::all_stream_entries[] = {
@@ -1097,13 +1103,11 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
         return MAV_RESULT_ACCEPTED;
 #endif
 
-#if AP_ICENGINE_ENABLED
     case MAV_CMD_DO_ENGINE_CONTROL:
         if (!plane.g2.ice_control.engine_control(packet.param1, packet.param2, packet.param3)) {
             return MAV_RESULT_FAILED;
         }
         return MAV_RESULT_ACCEPTED;
-#endif
 
 #if AP_SCRIPTING_ENABLED
     case MAV_CMD_DO_FOLLOW:
@@ -1114,7 +1118,27 @@ MAV_RESULT GCS_MAVLINK_Plane::handle_command_long_packet(const mavlink_command_l
         }
         return MAV_RESULT_FAILED;
 #endif
-        
+
+    case MAV_CMD_GUIDANCE_TRACKING_SET_BBOX:
+        if (packet.param1 >= 0 && packet.param1 <= 1000 
+         && packet.param2 >= 0 && packet.param2 <= 1000 
+         && packet.param3 >= 0 && packet.param3 <= 1000 
+         && packet.param4 >= 0 && packet.param4 <= 1000)
+        {
+            plane.guidance_bbox_x = packet.param1;
+            plane.guidance_bbox_y = packet.param2;
+            plane.guidance_bbox_w = packet.param3;
+            plane.guidance_bbox_h = packet.param4;
+            gcs().send_text(MAV_SEVERITY_INFO, "Set BBox Received Successfully");
+            gcs().send_text(MAV_SEVERITY_INFO, "X = %i , Y = %i , w = %i , h = %i",plane.guidance_bbox_x,plane.guidance_bbox_y,plane.guidance_bbox_w,plane.guidance_bbox_h);
+
+            return MAV_RESULT_ACCEPTED;
+        }
+        else
+            return MAV_RESULT_FAILED;
+    case MAV_CMD_GUIDANCE_TRACKING_GET_BBOX:
+        gcs().send_text(MAV_SEVERITY_INFO, "Get BBox Received Successfully");
+        return MAV_RESULT_ACCEPTED;
     default:
         return GCS_MAVLINK::handle_command_long_packet(packet);
     }
@@ -1311,6 +1335,17 @@ void GCS_MAVLINK_Plane::handleMessage(const mavlink_message_t &msg)
 
         break;
     }
+
+    case MAVLINK_MSG_ID_TRACKED_TARGET_POSITION:
+        mavlink_tracked_target_position_t packet;
+        mavlink_msg_tracked_target_position_decode(&msg, &packet);
+        
+        plane.guidance_bbox_x = packet.guidance_bbox_x;
+        plane.guidance_bbox_y = packet.guidance_bbox_y;
+        plane.guidance_bbox_w = packet.guidance_bbox_w;
+        plane.guidance_bbox_h = packet.guidance_bbox_h;
+
+        break; 
 
     default:
         handle_common_message(msg);
