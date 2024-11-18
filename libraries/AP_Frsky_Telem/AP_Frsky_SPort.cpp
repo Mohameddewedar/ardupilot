@@ -1,5 +1,7 @@
 #include "AP_Frsky_SPort.h"
 
+#if AP_FRSKY_SPORT_TELEM_ENABLED
+
 #include <AP_HAL/utility/sparse-endian.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_GPS/AP_GPS.h>
@@ -41,7 +43,10 @@ void AP_Frsky_SPort::send(void)
     }
 
     for (int16_t i = 0; i < numc; i++) {
-        int16_t readbyte = _port->read();
+        uint8_t readbyte;
+        if (!_port->read(readbyte)) {
+            break;
+        }
         if (_SPort.sport_status == false) {
             if  (readbyte == FRAME_HEAD) {
                 _SPort.sport_status = true;
@@ -113,6 +118,7 @@ void AP_Frsky_SPort::send(void)
                 }
                 break;
             case SENSOR_ID_RPM: // Sensor ID 4
+#if AP_RPM_ENABLED
                 {
                     const AP_RPM* rpm = AP::rpm();
                     if (rpm == nullptr) {
@@ -132,6 +138,7 @@ void AP_Frsky_SPort::send(void)
                         _SPort.rpm_call = 0;
                     }
                 }
+#endif  // AP_RPM_ENABLED
                 break;
             case SENSOR_ID_SP2UR: // Sensor ID  6
                 switch (_SPort.various_call) {
@@ -365,6 +372,7 @@ bool AP_Frsky_SPortParser::get_packet(AP_Frsky_SPort::sport_packet_t &sport_pack
         0x1B	// Physical ID 27 - ArduPilot/Betaflight DEFAULT DOWNLINK
  * for FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
  */
+#undef BIT
 #define BIT(x, index) (((x) >> index) & 0x01)
 uint8_t AP_Frsky_SPort::calc_sensor_id(const uint8_t physical_id)
 {
@@ -470,3 +478,5 @@ namespace AP {
         return AP_Frsky_SPort::get_singleton();
     }
 };
+
+#endif  // AP_FRSKY_SPORT_TELEM_ENABLED

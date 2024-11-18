@@ -18,11 +18,11 @@ public:
     Mode() {}
 
     // do not allow copying
-    Mode(const Mode &other) = delete;
-    Mode &operator=(const Mode&) = delete;
+    CLASS_NO_COPY(Mode);
 
     // returns a unique number specific to this mode
     virtual Mode::Number number() const = 0;
+    virtual const char* name() const = 0;
 
     virtual bool requires_armed_servos() const = 0;
 
@@ -42,6 +42,7 @@ protected:
 class ModeAuto : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::AUTO; }
+    const char* name() const override { return "Auto"; }
     bool requires_armed_servos() const override { return true; }
     void update() override;
 };
@@ -49,6 +50,7 @@ public:
 class ModeGuided : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::GUIDED; }
+    const char* name() const override { return "Guided"; }
     bool requires_armed_servos() const override { return true; }
     void update() override;
 
@@ -67,6 +69,7 @@ private:
 class ModeInitialising : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::INITIALISING; }
+    const char* name() const override { return "Initialising"; }
     bool requires_armed_servos() const override { return false; }
     void update() override {};
 };
@@ -74,6 +77,7 @@ public:
 class ModeManual : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::MANUAL; }
+    const char* name() const override { return "Manual"; }
     bool requires_armed_servos() const override { return true; }
     void update() override;
 };
@@ -81,6 +85,7 @@ public:
 class ModeScan : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::SCAN; }
+    const char* name() const override { return "Scan"; }
     bool requires_armed_servos() const override { return true; }
     void update() override;
 };
@@ -88,6 +93,7 @@ public:
 class ModeServoTest : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::SERVOTEST; }
+    const char* name() const override { return "ServoTest"; }
     bool requires_armed_servos() const override { return true; }
     void update() override {};
 
@@ -97,6 +103,7 @@ public:
 class ModeStop : public Mode {
 public:
     Mode::Number number() const override { return Mode::Number::STOP; }
+    const char* name() const override { return "Stop"; }
     bool requires_armed_servos() const override { return false; }
     void update() override {};
 };

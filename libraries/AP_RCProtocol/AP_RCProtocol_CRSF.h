@@ -18,15 +18,24 @@
  */
 #pragma once
 
+#include "AP_RCProtocol_config.h"
+#include <AP_RCTelemetry/AP_RCTelemetry_config.h>
+
+#if AP_RCPROTOCOL_CRSF_ENABLED
+
 #include "AP_RCProtocol.h"
 #include <AP_Math/AP_Math.h>
+#include <RC_Channel/RC_Channel.h>
 #include "SoftSerial.h"
+#include <AP_OSD/AP_OSD_config.h>
 
 #define CRSF_MAX_CHANNELS   24U      // Maximum number of channels from crsf datastream
 #define CRSF_FRAMELEN_MAX   64U      // maximum possible framelength
-#define CSRF_HEADER_LEN     2U       // header length
-#define CRSF_FRAME_PAYLOAD_MAX (CRSF_FRAMELEN_MAX - CSRF_HEADER_LEN)     // maximum size of the frame length field in a packet
+#define CRSF_HEADER_LEN     2U       // header length
+#define CRSF_FRAME_PAYLOAD_MAX (CRSF_FRAMELEN_MAX - CRSF_HEADER_LEN)     // maximum size of the frame length field in a packet
+#define CRSF_FRAME_LENGTH_MIN 2 // min value for _frame.length
 #define CRSF_BAUDRATE      416666U
+#define ELRS_BAUDRATE      420000U
 #define CRSF_TX_TIMEOUT    500000U   // the period after which the transmitter is considered disconnected (matches copters failsafe)
 #define CRSF_RX_TIMEOUT    150000U   // the period after which the receiver is considered disconnected (>ping frequency)
 
@@ -35,23 +44,33 @@ public:
     AP_RCProtocol_CRSF(AP_RCProtocol &_frontend);
     virtual ~AP_RCProtocol_CRSF();
     void process_byte(uint8_t byte, uint32_t baudrate) override;
-    void process_pulse(uint32_t width_s0, uint32_t width_s1) override;
+    void process_handshake(uint32_t baudrate) override;
     void update(void) override;
+#if HAL_CRSF_TELEM_ENABLED
+    void start_bind(void) override;
+#endif
     // support for CRSF v3
     bool change_baud_rate(uint32_t baudrate);
-    bool is_crsf_v3_active() const { return _crsf_v3_active; }
+    // bootstrap baudrate
+    uint32_t get_bootstrap_baud_rate() const {
+#if AP_RC_CHANNEL_ENABLED
+        return rc().option_is_enabled(RC_Channels::Option::ELRS_420KBAUD) ? ELRS_BAUDRATE : CRSF_BAUDRATE;
+#else
+        return CRSF_BAUDRATE;
+#endif
+    }
 
     // is the receiver active, used to detect power loss and baudrate changes
     bool is_rx_active() const override {
         // later versions of CRSFv3 will send link rate frames every 200ms
         // but only before an initial failsafe
-        return AP_HAL::micros() < _last_rx_frame_time_us + CRSF_RX_TIMEOUT;
+        return _last_rx_frame_time_us != 0 && AP_HAL::micros() - _last_rx_frame_time_us < CRSF_RX_TIMEOUT;
     }
 
     // is the transmitter active, used to adjust telemetry data
     bool is_tx_active() const {
         // this is the same as the Copter failsafe timeout
-        return AP_HAL::micros() < _last_tx_frame_time_us + CRSF_TX_TIMEOUT;
+        return _last_tx_frame_time_us != 0 && AP_HAL::micros() - _last_tx_frame_time_us < CRSF_TX_TIMEOUT;
     }
 
     // get singleton instance
@@ -61,7 +80,9 @@ public:
 
     enum FrameType {
         CRSF_FRAMETYPE_GPS = 0x02,
+        CRSF_FRAMETYPE_VARIO = 0x07,
         CRSF_FRAMETYPE_BATTERY_SENSOR = 0x08,
+        CRSF_FRAMETYPE_BARO_VARIO = 0x09,
         CRSF_FRAMETYPE_HEARTBEAT = 0x0B,
         CRSF_FRAMETYPE_VTX = 0x0F,
         CRSF_FRAMETYPE_VTX_TELEM = 0x10,
@@ -136,6 +157,8 @@ public:
     // Commands for CRSF_COMMAND_RX
     enum CommandRX {
         CRSF_COMMAND_RX_BIND = 0x01,
+        CRSF_COMMAND_RX_CANCEL_BIND = 0x02,
+        CRSF_COMMAND_RX_SET_BIND_ID = 0x03,
     };
 
     // Commands for CRSF_COMMAND_GENERAL
@@ -233,29 +256,56 @@ public:
         // uint16_t digital_switch_channel[]:10; // digital switch channel
     } PACKED;
 
-    enum class RFMode : uint8_t {
+    enum class ProtocolType {
+        PROTOCOL_CRSF,
+        PROTOCOL_TRACER,
+        PROTOCOL_ELRS
+    };
+
+    // Source for ELRS RF modes: https://www.expresslrs.org/info/signal-health/#rf-mode-indexes-rfmd
+    enum RFMode {
         CRSF_RF_MODE_4HZ = 0,
         CRSF_RF_MODE_50HZ,
         CRSF_RF_MODE_150HZ,
         CRSF_RF_MODE_250HZ,
-        ELRS_RF_MODE_4HZ,
+        CRSF_RF_MAX_MODES = 4,
+        ELRS_RF_MODE_4HZ = 4,
         ELRS_RF_MODE_25HZ,
         ELRS_RF_MODE_50HZ,
         ELRS_RF_MODE_100HZ,
+        ELRS_RF_MODE_100HZ_FULL,
         ELRS_RF_MODE_150HZ,
         ELRS_RF_MODE_200HZ,
         ELRS_RF_MODE_250HZ,
+        ELRS_RF_MODE_333HZ_FULL,        
         ELRS_RF_MODE_500HZ,
+        ELRS_RF_MODE_D250HZ,
+        ELRS_RF_MODE_D500HZ,
+        ELRS_RF_MODE_F500HZ,
+        ELRS_RF_MODE_F1000HZ,
+        ELRS_RF_MODE_D50HZ,
+        RF_MODE_MAX_MODES,
         RF_MODE_UNKNOWN,
     };
-    // nominal ELRS air rates
-    static constexpr uint16_t elrs_air_rates[8] = {4, 25, 50, 100, 150, 200, 250, 500};
+
+#if AP_OSD_LINK_STATS_EXTENSIONS_ENABLED
+    // These power levels are valid for both Crossfire and ELRS systems
+    static constexpr uint16_t tx_powers[] = { 0, 10, 25, 100, 500, 1000, 2000, 250, 50 };    
+#endif
 
     struct LinkStatus {
         int16_t rssi = -1;
         int16_t link_quality = -1;
         uint8_t rf_mode;
+#if AP_OSD_LINK_STATS_EXTENSIONS_ENABLED
+        // Add the extra data fields to be used by the OSD panels
+        int16_t tx_power = -1;
+        int8_t rssi_dbm = -1;
+        int8_t snr = INT8_MIN;
+        int8_t active_antenna = -1;
+#endif
     };
+
 
     // this will be used by AP_CRSF_Telem to access link status data
     // from within AP_RCProtocol_CRSF thread so no need for cross-thread synch
@@ -263,17 +313,25 @@ public:
         return _link_status;
     }
 
+    // return the link rate as defined by the LinkStatistics
+    uint16_t get_link_rate(ProtocolType protocol) const;
+
+    // return the protocol string
+    const char* get_protocol_string(ProtocolType protocol) const;
+
 private:
     struct Frame _frame;
+    uint8_t *_frame_bytes = (uint8_t*)&_frame;
     struct Frame _telemetry_frame;
     uint8_t _frame_ofs;
-    uint8_t _frame_crc;
 
     const uint8_t MAX_CHANNELS = MIN((uint8_t)CRSF_MAX_CHANNELS, (uint8_t)MAX_RCIN_CHANNELS);
 
     static AP_RCProtocol_CRSF* _singleton;
 
-    void _process_byte(uint32_t timestamp_us, uint8_t byte);
+    void _process_byte(uint8_t byte);
+    bool check_frame(uint32_t timestamp_us);
+    void skip_to_next_frame(uint32_t timestamp_us);
     bool decode_crsf_packet();
     bool process_telemetry(bool check_constraint = true);
     void process_link_stats_frame(const void* data);
@@ -287,8 +345,6 @@ private:
     AP_HAL::UARTDriver* get_current_UART() { return (_uart ? _uart : get_available_UART()); }
 
     uint16_t _channels[CRSF_MAX_CHANNELS];    /* buffer for extracted RC channel data as pulsewidth in microseconds */
-
-    void add_to_buffer(uint8_t index, uint8_t b) { ((uint8_t*)&_frame)[index] = b; }
 
     uint32_t _last_frame_time_us;
     uint32_t _last_tx_frame_time_us;
@@ -304,11 +360,13 @@ private:
 
     volatile struct LinkStatus _link_status;
 
-    AP_HAL::UARTDriver *_uart;
+    static const uint16_t RF_MODE_RATES[RFMode::RF_MODE_MAX_MODES];
 
-    SoftSerial ss{CRSF_BAUDRATE, SoftSerial::SERIAL_CONFIG_8N1};
+    AP_HAL::UARTDriver *_uart;
 };
 
 namespace AP {
     AP_RCProtocol_CRSF* crsf();
 };
+
+#endif  // AP_RCPROTOCOL_CRSF_ENABLED

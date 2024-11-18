@@ -17,23 +17,19 @@
 
 #pragma once
 
-#include <AP_HAL/AP_HAL.h>
-#include <AP_OSD/AP_OSD.h>
-
-#ifndef AP_TRAMP_ENABLED
-#define AP_TRAMP_ENABLED OSD_ENABLED && BOARD_FLASH_SIZE>1024 && !HAL_MINIMIZE_FEATURES
-#endif
+#include "AP_VideoTX_config.h"
 
 #if AP_TRAMP_ENABLED
 
+#include <AP_HAL/AP_HAL.h>
+#include <AP_OSD/AP_OSD.h>
 #include <AP_Param/AP_Param.h>
-#include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_HAL/utility/RingBuffer.h>
 #include "AP_VideoTX.h"
 
 #define VTX_TRAMP_POWER_COUNT 5
 
-#define VTX_TRAMP_MIN_FREQUENCY_MHZ 5000             //min freq in MHz
+#define VTX_TRAMP_MIN_FREQUENCY_MHZ 1000             //min freq in MHz
 #define VTX_TRAMP_MAX_FREQUENCY_MHZ 5999             //max freq in MHz
 // Maximum number of requests sent to try a config change
 // Some VTX fail to respond to every request (like Matek FCHUB-VTX) so
@@ -42,6 +38,11 @@
 // Race lock - settings can't be changed
 #define TRAMP_CONTROL_RACE_LOCK (0x01)
 
+#define VTX_TRAMP_UART_BAUD            9600
+#define VTX_TRAMP_SMARTBAUD_MIN        9120     // -5%
+#define VTX_TRAMP_SMARTBAUD_MAX        10080    // +5%
+#define VTX_TRAMP_SMARTBAUD_STEP       120
+
 class AP_Tramp
 {
 public:
@@ -49,8 +50,7 @@ public:
     ~AP_Tramp() {}
 
     /* Do not allow copies */
-    AP_Tramp(const AP_Tramp &other) = delete;
-    AP_Tramp &operator=(const AP_Tramp&) = delete;
+    CLASS_NO_COPY(AP_Tramp);
 
     static AP_Tramp *get_singleton(void) {
         return singleton;
@@ -78,6 +78,8 @@ private:
     void set_frequency(uint16_t freq);
     void set_power(uint16_t power);
     void set_pit_mode(uint8_t onoff);
+    // change baud automatically when request-response fails many times
+    void update_baud_rate();
 
     // serial interface
     AP_HAL::UARTDriver *port;                  // UART used to send data to Tramp VTX
@@ -119,6 +121,17 @@ private:
     uint16_t cur_act_power; // Actual power
     int16_t cur_temp;
     uint8_t cur_control_mode;
+
+    // statistics
+    uint16_t _packets_sent;
+    uint16_t _packets_rcvd;
+
+    // value for current baud adjust
+    int32_t _smartbaud = VTX_TRAMP_UART_BAUD;
+    enum class AutobaudDirection {
+        UP = 1,
+        DOWN = -1
+    } _smartbaud_direction = AutobaudDirection::DOWN;
 
     // Retry count
     uint8_t retry_count = VTX_TRAMP_MAX_RETRIES;

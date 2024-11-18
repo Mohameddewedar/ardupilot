@@ -40,9 +40,11 @@ do {                                            \
  # define Debug(fmt, args ...)
 #endif
 
-AP_GPS_NOVA::AP_GPS_NOVA(AP_GPS &_gps, AP_GPS::GPS_State &_state,
-                       AP_HAL::UARTDriver *_port) :
-    AP_GPS_Backend(_gps, _state, _port)
+AP_GPS_NOVA::AP_GPS_NOVA(AP_GPS &_gps,
+                         AP_GPS::Params &_params,
+                         AP_GPS::GPS_State &_state,
+                         AP_HAL::UARTDriver *_port) :
+    AP_GPS_Backend(_gps, _params, _state, _port)
 {
     nova_msg.nova_state = nova_msg_parser::PREAMBLE1;
 
@@ -59,13 +61,11 @@ AP_GPS_NOVA::AP_GPS_NOVA(AP_GPS &_gps, AP_GPS::GPS_State &_state,
     }
 }
 
-const char* const AP_GPS_NOVA::_initialisation_blob[6] {
+const char* const AP_GPS_NOVA::_initialisation_blob[4] {
     "\r\n\r\nunlogall\r\n", // cleanup enviroment
-    "log bestposb ontime 0.2 0 nohold\r\n", // get bestpos
-    "log bestvelb ontime 0.2 0 nohold\r\n", // get bestvel
-    "log psrdopb onchanged\r\n", // tersus
-    "log psrdopb ontime 0.2\r\n", // comnav
-    "log psrdopb\r\n" // poll message, as dop only changes when a sat is dropped/added to the visible list
+    "log bestposb ontime 0.2 0 nohold\r\n",
+    "log bestvelb ontime 0.2 0 nohold\r\n",
+    "log psrdopb ontime 0.2 0 nohold\r\n",
 };
 
 // Process all bytes available from the stream
@@ -88,8 +88,14 @@ AP_GPS_NOVA::read(void)
     }
 
     bool ret = false;
-    while (port->available() > 0) {
-        uint8_t temp = port->read();
+    for (uint16_t i=0; i<8192; i++) {
+        uint8_t temp;
+        if (!port->read(temp)) {
+            break;
+        }
+#if AP_GPS_DEBUG_LOGGING_ENABLED
+        log_data(&temp, 1);
+#endif
         ret |= parse(temp);
     }
     
@@ -170,8 +176,8 @@ AP_GPS_NOVA::parse(uint8_t temp)
             nova_msg.crc += (uint32_t) (temp << 24);
             nova_msg.nova_state = nova_msg_parser::PREAMBLE1;
 
-            uint32_t crc = CalculateBlockCRC32((uint32_t)nova_msg.header.nova_headeru.headerlength, (uint8_t *)&nova_msg.header.data, (uint32_t)0);
-            crc = CalculateBlockCRC32((uint32_t)nova_msg.header.nova_headeru.messagelength, (uint8_t *)&nova_msg.data, crc);
+            uint32_t crc = crc_crc32((uint32_t)0, (uint8_t *)&nova_msg.header.data, (uint32_t)nova_msg.header.nova_headeru.headerlength);
+            crc = crc_crc32(crc, (uint8_t *)&nova_msg.data, (uint32_t)nova_msg.header.nova_headeru.messagelength);
 
             if (nova_msg.crc == crc) {
                 return process_message();
@@ -204,11 +210,13 @@ AP_GPS_NOVA::process_message(void)
 
         state.location.lat = (int32_t) (bestposu.lat * (double)1e7);
         state.location.lng = (int32_t) (bestposu.lng * (double)1e7);
-        state.location.alt = (int32_t) (bestposu.hgt * 100);
+        state.have_undulation = true;
+        state.undulation = bestposu.undulation;
+        set_alt_amsl_cm(state, bestposu.hgt * 100);
 
         state.num_sats = bestposu.svsused;
 
-        state.horizontal_accuracy = (float) ((bestposu.latsdev + bestposu.lngsdev)/2);
+        state.horizontal_accuracy =  norm(bestposu.latsdev, bestposu.lngsdev);
         state.vertical_accuracy = (float) bestposu.hgtsdev;
         state.have_horizontal_accuracy = true;
         state.have_vertical_accuracy = true;
@@ -285,25 +293,4 @@ AP_GPS_NOVA::process_message(void)
     return false;
 }
 
-#define CRC32_POLYNOMIAL 0xEDB88320L
-uint32_t AP_GPS_NOVA::CRC32Value(uint32_t icrc)
-{
-    int i;
-    uint32_t crc = icrc;
-    for ( i = 8 ; i > 0; i-- ) {
-        if ( crc & 1 )
-            crc = ( crc >> 1 ) ^ CRC32_POLYNOMIAL;
-        else
-            crc >>= 1;
-    }
-    return crc;
-}
-
-uint32_t AP_GPS_NOVA::CalculateBlockCRC32(uint32_t length, uint8_t *buffer, uint32_t crc)
-{
-    while ( length-- != 0 ) {
-        crc = ((crc >> 8) & 0x00FFFFFFL) ^ (CRC32Value(((uint32_t) crc ^ *buffer++) & 0xff));
-    }
-    return( crc );
-}
 #endif

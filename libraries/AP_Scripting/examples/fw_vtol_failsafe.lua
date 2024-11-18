@@ -8,22 +8,17 @@
 -- If the aircraft drops below a predetermined minimum altitude, QLAND mode is engaged and the aircraft lands at its current position.
 -- If the aircraft arrives within Q_FW_LND_APR_RAD of the return point before dropping below the minimum altitude, it should loiter down to the minimum altitude before switching to QRTL and landing.
 
+---@diagnostic disable: cast-local-type
+
 -- setup param block for VTOL failsafe params
 local PARAM_TABLE_KEY = 77
 local PARAM_TABLE_PREFIX = "VTFS_"
 assert(param:add_table(PARAM_TABLE_KEY, PARAM_TABLE_PREFIX, 4), 'could not add param table')
 
--- bind a parameter to a variable
-function bind_param(name)
-   local p = Parameter()
-   assert(p:init(name), string.format('could not find %s parameter', name))
-   return p
-end
-
 -- add a parameter and bind it to a variable
 function bind_add_param(name, idx, default_value)
    assert(param:add_param(PARAM_TABLE_KEY, idx, name, default_value), string.format('could not add param %s', name))
-   return bind_param(PARAM_TABLE_PREFIX .. name)
+   return Parameter(PARAM_TABLE_PREFIX .. name)
 end
 
 -- consider engine stopped when vibe is low and RPM low for more than 4s

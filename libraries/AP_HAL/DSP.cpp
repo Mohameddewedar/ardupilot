@@ -34,11 +34,11 @@ extern const AP_HAL::HAL &hal;
 #define SQRT_2_3 0.816496580927726f
 #define SQRT_6   2.449489742783178f
 
-DSP::FFTWindowState::FFTWindowState(uint16_t window_size, uint16_t sample_rate, uint8_t sliding_window_size)
-    : _window_size(window_size),
+DSP::FFTWindowState::FFTWindowState(uint16_t window_size, uint16_t sample_rate, uint8_t sliding_window_size) :
+    _bin_resolution((float)sample_rate / (float)window_size),
     _bin_count(window_size / 2),
     _num_stored_freqs(window_size / 2 + 1),
-    _bin_resolution((float)sample_rate / (float)window_size),
+    _window_size(window_size),
     _sliding_window_size(sliding_window_size),
     _current_slice(0)
 {
@@ -357,6 +357,8 @@ uint16_t DSP::fft_stop_average(FFTWindowState* fft, uint16_t start_bin, uint16_t
     uint16_t numpeaks = find_peaks(&fft->_avg_freq_bins[start_bin], bin_range,
         scratch_space, peaks, MAX_TRACKED_PEAKS, 0.0f, -1.0f, smoothwidth, 2);
     hal.util->free_type(scratch_space, sizeof(float) * fft->_num_stored_freqs, DSP_MEM_REGION);
+
+    numpeaks = MIN(numpeaks, uint16_t(MAX_TRACKED_PEAKS));
 
     // now try and find the lowest harmonic
     for (uint16_t i = 0; i < numpeaks; i++) {

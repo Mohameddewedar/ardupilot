@@ -1,8 +1,13 @@
 #include <AP_HAL/AP_HAL.h>
 
 #include "AP_NavEKF3.h"
+
 #include "AP_NavEKF3_core.h"
+
+#if EK3_FEATURE_OPTFLOW_FUSION
+
 #include <GCS_MAVLink/GCS.h>
+#include <AP_DAL/AP_DAL.h>
 
 /********************************************************
 *                   RESET FUNCTIONS                     *
@@ -303,6 +308,13 @@ void NavEKF3_core::FuseOptFlow(const of_elements &ofDataDelayed, bool really_fus
         Vector3F posOffsetEarth = prevTnb.mul_transpose(posOffsetBody);
         range -= posOffsetEarth.z / prevTnb.c.z;
     }
+    
+#if APM_BUILD_TYPE(APM_BUILD_Rover)
+    // override with user specified height (if given, for rover)
+    if (ofDataDelayed.heightOverride > 0) {
+        range = ofDataDelayed.heightOverride;
+    }
+#endif
 
     // Fuse X and Y axis measurements sequentially assuming observation errors are uncorrelated
     for (uint8_t obsIndex=0; obsIndex<=1; obsIndex++) { // fuse X axis data first
@@ -484,7 +496,7 @@ void NavEKF3_core::FuseOptFlow(const of_elements &ofDataDelayed, bool really_fus
                 zero_range(&Kfusion[0], 16, 21);
             }
 
-            if (!inhibitWindStates) {
+            if (!inhibitWindStates && !treatWindStatesAsTruth) {
                 Kfusion[22] = t78*(P[22][0]*t2*t5-P[22][4]*t2*t7+P[22][1]*t2*t15+P[22][6]*t2*t10+P[22][2]*t2*t19-P[22][3]*t2*t22+P[22][5]*t2*t27);
                 Kfusion[23] = t78*(P[23][0]*t2*t5-P[23][4]*t2*t7+P[23][1]*t2*t15+P[23][6]*t2*t10+P[23][2]*t2*t19-P[23][3]*t2*t22+P[23][5]*t2*t27);
             } else {
@@ -661,7 +673,7 @@ void NavEKF3_core::FuseOptFlow(const of_elements &ofDataDelayed, bool really_fus
                 zero_range(&Kfusion[0], 16, 21);
             }
 
-            if (!inhibitWindStates) {
+            if (!inhibitWindStates && !treatWindStatesAsTruth) {
                 Kfusion[22] = -t78*(P[22][0]*t2*t5+P[22][5]*t2*t8-P[22][6]*t2*t10+P[22][1]*t2*t16-P[22][2]*t2*t19+P[22][3]*t2*t22+P[22][4]*t2*t27);
                 Kfusion[23] = -t78*(P[23][0]*t2*t5+P[23][5]*t2*t8-P[23][6]*t2*t10+P[23][1]*t2*t16-P[23][2]*t2*t19+P[23][3]*t2*t22+P[23][4]*t2*t27);
             } else {
@@ -772,3 +784,4 @@ bool NavEKF3_core::getOptFlowSample(uint32_t& timestamp_ms, Vector2f& flowRate, 
 *                   MISC FUNCTIONS                      *
 ********************************************************/
 
+#endif  //  EK3_FEATURE_OPTFLOW_FUSION

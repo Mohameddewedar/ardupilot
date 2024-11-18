@@ -18,7 +18,12 @@
  */
 #pragma once
 
+#include "AP_GPS_config.h"
+
+#if AP_GPS_ENABLED
+
 #include <GCS_MAVLink/GCS_MAVLink.h>
+#include <GCS_MAVLink/GCS_config.h>
 #include <AP_RTC/JitterCorrection.h>
 #include "AP_GPS.h"
 #include "AP_GPS_config.h"
@@ -29,6 +34,14 @@
 #define AP_GPS_DEBUG_LOGGING_ENABLED 0
 #endif
 
+#ifndef AP_GPS_MB_MIN_LAG
+#define AP_GPS_MB_MIN_LAG 0.05f
+#endif
+
+#ifndef AP_GPS_MB_MAX_LAG
+#define AP_GPS_MB_MAX_LAG 0.25f
+#endif
+
 #if AP_GPS_DEBUG_LOGGING_ENABLED
 #include <AP_HAL/utility/RingBuffer.h>
 #endif
@@ -36,7 +49,7 @@
 class AP_GPS_Backend
 {
 public:
-    AP_GPS_Backend(AP_GPS &_gps, AP_GPS::GPS_State &_state, AP_HAL::UARTDriver *_port);
+    AP_GPS_Backend(AP_GPS &_gps, AP_GPS::Params &_params, AP_GPS::GPS_State &_state, AP_HAL::UARTDriver *_port);
 
     // we declare a virtual destructor so that GPS drivers can
     // override with a custom destructor if need be.
@@ -55,13 +68,17 @@ public:
 
     virtual void inject_data(const uint8_t *data, uint16_t len);
 
+#if HAL_GCS_ENABLED
     //MAVLink methods
     virtual bool supports_mavlink_gps_rtk_message() const { return false; }
+#if AP_GPS_GPS_RTK_SENDING_ENABLED || AP_GPS_GPS2_RTK_SENDING_ENABLED
     virtual void send_mavlink_gps_rtk(mavlink_channel_t chan);
+#endif
+    virtual void handle_msg(const mavlink_message_t &msg) { return ; }
+#endif
 
     virtual void broadcast_configuration_failure_reason(void) const { return ; }
 
-    virtual void handle_msg(const mavlink_message_t &msg) { return ; }
 #if HAL_MSP_GPS_ENABLED
     virtual void handle_msp(const MSP::msp_gps_data_message_t &pkt) { return; }
 #endif
@@ -80,7 +97,9 @@ public:
     virtual const char *name() const = 0;
 
     void broadcast_gps_type() const;
+#if HAL_LOGGING_ENABLED
     virtual void Write_AP_Logger_Log_Startup_messages() const;
+#endif
 
     virtual bool prepare_for_arming(void) { return true; }
 
@@ -91,9 +110,7 @@ public:
     virtual bool get_error_codes(uint32_t &error_codes) const { return false; }
 
     // return iTOW of last message, or zero if not supported
-    uint32_t get_last_itow_ms(void) const {
-        return (_pseudo_itow_delta_ms == 0)?(_last_itow_ms):((_pseudo_itow/1000ULL) + _pseudo_itow_delta_ms);
-    }
+    uint32_t get_last_itow_ms(void) const;
 
     // check if an option is set
     bool option_set(const AP_GPS::DriverOptions option) const {
@@ -104,19 +121,22 @@ protected:
     AP_HAL::UARTDriver *port;           ///< UART we are attached to
     AP_GPS &gps;                        ///< access to frontend (for parameters)
     AP_GPS::GPS_State &state;           ///< public state for this instance
+    AP_GPS::Params &params;
 
     uint64_t _last_pps_time_us;
     JitterCorrection jitter_correction;
     uint32_t _last_itow_ms;
-
-    // common utility functions
-    int32_t swap_int32(int32_t v) const;
-    int16_t swap_int16(int16_t v) const;
+    bool _have_itow;
 
     /*
       fill in 3D velocity from 2D components
      */
     void fill_3d_velocity(void);
+
+    /*
+      fill ground course and speed from velocity
+     */
+    void velocity_to_speed_course(AP_GPS::GPS_State &s);
 
     /*
        fill in time_week_ms and time_week from BCD date and time components
@@ -153,6 +173,9 @@ protected:
     void log_data(const uint8_t *data, uint16_t length);
 #endif
 
+    // set alt in location, honouring GPS driver option for ellipsoid height
+    void set_alt_amsl_cm(AP_GPS::GPS_State &_state, int32_t alt_amsl_cm);
+
 private:
     // itow from previous message
     uint64_t _pseudo_itow;
@@ -161,12 +184,18 @@ private:
     uint32_t _rate_ms;
     uint32_t _last_rate_ms;
     uint16_t _rate_counter;
+
 #if AP_GPS_DEBUG_LOGGING_ENABLED
-    struct {
+    // support raw GPS logging
+    static struct loginfo {
         int fd = -1;
-        ByteBuffer buf{32768};
-        bool io_registered;
-    } logging;
-    void logging_update(void);
+        ByteBuffer buf{16000};
+    } logging[2];
+    static bool log_thread_created;
+    static void logging_loop(void);
+    void logging_start(void);
 #endif
+
 };
+
+#endif  // AP_GPS_ENABLED

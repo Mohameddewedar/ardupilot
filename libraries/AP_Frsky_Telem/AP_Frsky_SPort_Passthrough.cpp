@@ -1,5 +1,7 @@
 #include "AP_Frsky_SPort_Passthrough.h"
 
+#if AP_FRSKY_SPORT_PASSTHROUGH_ENABLED
+
 #include <AP_AHRS/AP_AHRS.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_GPS/AP_GPS.h>
@@ -18,8 +20,8 @@
 
 #if HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
 #include "AP_Frsky_MAVlite.h"
-#include "AP_Frsky_Parameters.h"
 #endif //HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
+#include "AP_Frsky_Parameters.h"
 
 /*
 for FrSky SPort Passthrough
@@ -222,11 +224,13 @@ bool AP_Frsky_SPort_Passthrough::is_packet_ready(uint8_t idx, bool queue_empty)
     case RPM:
         {
             packet_ready = false;
+#if AP_RPM_ENABLED
             const AP_RPM *rpm = AP::rpm();
             if (rpm == nullptr) {
                 break;
             }
             packet_ready = rpm->num_sensors() > 0;
+#endif
         }
         break;
     case TERRAIN:
@@ -563,7 +567,7 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_ap_status(void)
 {
     // IMU temperature: offset -19, 0 means temp =< 19°, 63 means temp => 82°
     uint8_t imu_temp = 0;
-#if HAL_INS_ENABLED
+#if AP_INERTIALSENSOR_ENABLED
     imu_temp = (uint8_t) roundf(constrain_float(AP::ins().get_temperature(0), AP_IMU_TEMP_MIN, AP_IMU_TEMP_MAX) - AP_IMU_TEMP_MIN);
 #endif
 
@@ -642,7 +646,7 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_home(void)
  */
 uint32_t AP_Frsky_SPort_Passthrough::calc_velandyaw(void)
 {
-    float vspd = get_vspeed_ms();
+    float vspd = AP_RCTelemetry::get_vspeed_ms();
     // vertical velocity in dm/s
     uint32_t velandyaw = prep_number(roundf(vspd * 10), 2, 1);
     float airspeed_m;       // m/s
@@ -679,15 +683,23 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_velandyaw(void)
  */
 uint32_t AP_Frsky_SPort_Passthrough::calc_attiandrng(void)
 {
+#if AP_RANGEFINDER_ENABLED
     const RangeFinder *_rng = RangeFinder::get_singleton();
+#endif
 
-    AP_AHRS &_ahrs = AP::ahrs();
+    float roll;
+    float pitch;
+    AP::vehicle()->get_osd_roll_pitch_rad(roll,pitch);
     // roll from [-18000;18000] centidegrees to unsigned .2 degree increments [0;1800] (just in case, limit to 2047 (0x7FF) since the value is stored on 11 bits)
-    uint32_t attiandrng = ((uint16_t)roundf((_ahrs.roll_sensor + 18000) * 0.05f) & ATTIANDRNG_ROLL_LIMIT);
+    uint32_t attiandrng = ((uint16_t)roundf((roll * RAD_TO_DEG * 100 + 18000) * 0.05f) & ATTIANDRNG_ROLL_LIMIT);
     // pitch from [-9000;9000] centidegrees to unsigned .2 degree increments [0;900] (just in case, limit to 1023 (0x3FF) since the value is stored on 10 bits)
-    attiandrng |= ((uint16_t)roundf((_ahrs.pitch_sensor + 9000) * 0.05f) & ATTIANDRNG_PITCH_LIMIT)<<ATTIANDRNG_PITCH_OFFSET;
+    attiandrng |= ((uint16_t)roundf((pitch * RAD_TO_DEG * 100 + 9000) * 0.05f) & ATTIANDRNG_PITCH_LIMIT)<<ATTIANDRNG_PITCH_OFFSET;
     // rangefinder measurement in cm
+#if AP_RANGEFINDER_ENABLED
     attiandrng |= prep_number(_rng ? _rng->distance_cm_orient(ROTATION_PITCH_270) : 0, 3, 1)<<ATTIANDRNG_RNGFND_OFFSET;
+#else
+    attiandrng |= prep_number(0, 3, 1)<<ATTIANDRNG_RNGFND_OFFSET;
+#endif
     return attiandrng;
 }
 
@@ -697,6 +709,7 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_attiandrng(void)
  */
 uint32_t AP_Frsky_SPort_Passthrough::calc_rpm(void)
 {
+#if AP_RPM_ENABLED
     const AP_RPM *ap_rpm = AP::rpm();
     if (ap_rpm == nullptr) {
         return 0;
@@ -713,6 +726,9 @@ uint32_t AP_Frsky_SPort_Passthrough::calc_rpm(void)
         value |= (int16_t)roundf(rpm * 0.1) << 16;
     }
     return value;
+#else
+    return 0;
+#endif
 }
 
 /*
@@ -925,6 +941,16 @@ void AP_Frsky_SPort_Passthrough::process_tx_queue()
 }
 
 /*
+ * Send a mavlite message
+ * Message is chunked in sport packets pushed in the tx queue
+ * for FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
+ */
+bool AP_Frsky_SPort_Passthrough::send_message(const AP_Frsky_MAVlite_Message &txmsg)
+{
+    return mavlite_to_sport.process(_SPort_bidir.tx_packet_queue, txmsg);
+}
+#endif //HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
+/*
  * Utility method to apply constraints in changing sensor id values
  * for FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
  */
@@ -940,17 +966,6 @@ void AP_Frsky_SPort_Passthrough::set_sensor_id(AP_Int8 param_idx, uint8_t &senso
     sensor = calc_sensor_id(idx);
 }
 
-/*
- * Send a mavlite message
- * Message is chunked in sport packets pushed in the tx queue
- * for FrSky SPort Passthrough (OpenTX) protocol (X-receivers)
- */
-bool AP_Frsky_SPort_Passthrough::send_message(const AP_Frsky_MAVlite_Message &txmsg)
-{
-    return mavlite_to_sport.process(_SPort_bidir.tx_packet_queue, txmsg);
-}
-#endif //HAL_WITH_FRSKY_TELEM_BIDIRECTIONAL
-
 namespace AP
 {
 AP_Frsky_SPort_Passthrough *frsky_passthrough_telem()
@@ -958,3 +973,5 @@ AP_Frsky_SPort_Passthrough *frsky_passthrough_telem()
     return AP_Frsky_SPort_Passthrough::get_singleton();
 }
 };
+
+#endif  // AP_FRSKY_SPORT_PASSTHROUGH_ENABLED

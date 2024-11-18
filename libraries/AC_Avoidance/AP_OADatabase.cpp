@@ -11,11 +11,16 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "AC_Avoidance_config.h"
+
+#if AP_OADATABASE_ENABLED
+
 #include "AP_OADatabase.h"
 
 #include <AP_AHRS/AP_AHRS.h>
 #include <GCS_MAVLink/GCS.h>
 #include <AP_Math/AP_Math.h>
+#include <AP_Vehicle/AP_Vehicle_Type.h>
 
 extern const AP_HAL::HAL& hal;
 
@@ -67,7 +72,7 @@ const AP_Param::GroupInfo AP_OADatabase::var_info[] = {
     // @Description: OADatabase output level to configure which database objects are sent to the ground station. All data is always available internally for avoidance algorithms.
     // @Values: 0:Disabled,1:Send only HIGH importance items,2:Send HIGH and NORMAL importance items,3:Send all items
     // @User: Advanced
-    AP_GROUPINFO("OUTPUT", 4, AP_OADatabase, _output_level, (float)OA_DbOutputLevel::OUTPUT_LEVEL_SEND_HIGH),
+    AP_GROUPINFO("OUTPUT", 4, AP_OADatabase, _output_level, (float)OutputLevel::HIGH),
 
     // @Param: BEAM_WIDTH
     // @DisplayName: OADatabase beam width
@@ -96,7 +101,7 @@ const AP_Param::GroupInfo AP_OADatabase::var_info[] = {
 
     // @Param{Copter}: ALT_MIN
     // @DisplayName: OADatabase minimum altitude above home before storing obstacles
-    // @Description: OADatabase will reject obstacle's if vehicle's altitude above home is below this parameter, in a 3 meter radius around home. Set 0 to disable this feature.
+    // @Description: OADatabase will reject obstacles if vehicle's altitude above home is below this parameter, in a 3 meter radius around home. Set 0 to disable this feature.
     // @Units: m
     // @Range: 0 4
     // @User: Advanced
@@ -124,7 +129,7 @@ void AP_OADatabase::init()
     dist_to_radius_scalar = tanf(radians(MAX(_beam_width, 1.0f)));
 
     if (!healthy()) {
-        gcs().send_text(MAV_SEVERITY_INFO, "DB init failed . Sizes queue:%u, db:%u", (unsigned int)_queue.size, (unsigned int)_database.size);
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "DB init failed . Sizes queue:%u, db:%u", (unsigned int)_queue.size, (unsigned int)_database.size);
         delete _queue.items;
         delete[] _database.items;
         return;
@@ -185,7 +190,12 @@ void AP_OADatabase::init_queue()
         return;
     }
 
-    _queue.items = new ObjectBuffer<OA_DbItem>(_queue.size);
+    _queue.items = NEW_NOTHROW ObjectBuffer<OA_DbItem>(_queue.size);
+    if (_queue.items != nullptr && _queue.items->get_size() == 0) {
+        // allocation failed
+        delete _queue.items;
+        _queue.items = nullptr;
+    }
 }
 
 void AP_OADatabase::init_database()
@@ -195,7 +205,7 @@ void AP_OADatabase::init_database()
         return;
     }
 
-    _database.items = new OA_DbItem[_database.size];
+    _database.items = NEW_NOTHROW OA_DbItem[_database.size];
 }
 
 // get bitmask of gcs channels item should be sent to based on its importance
@@ -204,19 +214,19 @@ uint8_t AP_OADatabase::get_send_to_gcs_flags(const OA_DbItemImportance importanc
 {
     switch (importance) {
     case OA_DbItemImportance::Low:
-        if (_output_level.get() >= (int8_t)OA_DbOutputLevel::OUTPUT_LEVEL_SEND_ALL) {
+        if (_output_level >= OutputLevel::ALL) {
             return 0xFF;
         }
         break;
 
     case OA_DbItemImportance::Normal:
-        if (_output_level.get() >= (int8_t)OA_DbOutputLevel::OUTPUT_LEVEL_SEND_HIGH_AND_NORMAL) {
+        if (_output_level >= OutputLevel::HIGH_AND_NORMAL) {
             return 0xFF;
         }
         break;
 
     case OA_DbItemImportance::High:
-        if (_output_level.get() >= (int8_t)OA_DbOutputLevel::OUTPUT_LEVEL_SEND_HIGH) {
+        if (_output_level >= OutputLevel::HIGH) {
             return 0xFF;
         }
         break;
@@ -224,7 +234,7 @@ uint8_t AP_OADatabase::get_send_to_gcs_flags(const OA_DbItemImportance importanc
     return 0x0;
 }
 
-// returns true when there's more work inthe queue to do
+// returns true when there's more work in the queue to do
 bool AP_OADatabase::process_queue()
 {
     if (!healthy()) {
@@ -359,6 +369,7 @@ bool AP_OADatabase::is_close_to_item_in_database(const uint16_t index, const OA_
     return ((distance_sq < sq(item.radius)) || (distance_sq < sq(_database.items[index].radius)));
 }
 
+#if HAL_GCS_ENABLED
 // send ADSB_VEHICLE mavlink messages
 void AP_OADatabase::send_adsb_vehicle(mavlink_channel_t chan, uint16_t interval_ms)
 {
@@ -366,7 +377,7 @@ void AP_OADatabase::send_adsb_vehicle(mavlink_channel_t chan, uint16_t interval_
     static_assert(MAVLINK_COMM_NUM_BUFFERS <= sizeof(OA_DbItem::send_to_gcs) * 8,
                   "AP_OADatabase's OA_DBItem.send_to_gcs bitmask must be large enough to hold MAVLINK_COMM_NUM_BUFFERS");
 
-    if ((_output_level.get() <= (int8_t)OA_DbOutputLevel::OUTPUT_LEVEL_DISABLED) || !healthy()) {
+    if ((_output_level <= OutputLevel::NONE) || !healthy()) {
         return;
     }
 
@@ -463,6 +474,7 @@ void AP_OADatabase::send_adsb_vehicle(mavlink_channel_t chan, uint16_t interval_
         num_sent++;
     }
 }
+#endif  // HAL_GCS_ENABLED
 
 // singleton instance
 AP_OADatabase *AP_OADatabase::_singleton;
@@ -474,3 +486,5 @@ AP_OADatabase *oadatabase()
 }
 
 }
+
+#endif  // AP_OADATABASE_ENABLED

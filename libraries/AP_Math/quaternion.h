@@ -50,15 +50,6 @@ public:
     {
     }
 
-    // function call operator
-    void operator()(const T _q1, const T _q2, const T _q3, const T _q4)
-    {
-        q1 = _q1;
-        q2 = _q2;
-        q3 = _q3;
-        q4 = _q4;
-    }
-
     // check if any elements are NAN
     bool        is_nan(void) const WARN_IF_UNUSED
     {
@@ -81,11 +72,11 @@ public:
     // convert a vector from earth to body frame
     void        earth_to_body(Vector3<T> &v) const;
 
-    // create a quaternion from Euler angles
+    // create a quaternion from Euler angles using 321 euler ordering
     void        from_euler(T roll, T pitch, T yaw);
     void        from_euler(const Vector3<T> &v);
 
-    // create a quaternion from Euler angles applied in yaw, roll, pitch order
+    // create a quaternion from Euler angles applied in yaw, roll, pitch order (312)
     // instead of the normal yaw, pitch, roll order
     void        from_vector312(T roll, T pitch, T yaw);
 
@@ -112,24 +103,34 @@ public:
     // the axis vector must be length 1, theta should less than 0.17 radians (i.e. 10 degrees)
     void        from_axis_angle_fast(const Vector3<T> &axis, T theta);
 
+    // create a quaternion by integrating an angular velocity over some time_delta, which is 
+    // assumed to be small
+    void        from_angular_velocity(const Vector3<T>& angular_velocity, float time_delta);
+
     // rotate by the provided rotation vector
     // only use with small angles.  I.e. length of v should less than 0.17 radians (i.e. 10 degrees)
     void        rotate_fast(const Vector3<T> &v);
 
-    // get euler roll angle
+    // get euler roll angle in radians
     T       get_euler_roll() const;
 
-    // get euler pitch angle
+    // get euler pitch angle in radians
     T       get_euler_pitch() const;
 
-    // get euler yaw angle
+    // get euler yaw angle in radians
     T       get_euler_yaw() const;
 
-    // create eulers from a quaternion
+    // create eulers (in radians) from a quaternion, using 321 ordering
     void        to_euler(float &roll, float &pitch, float &yaw) const;
+    void        to_euler(Vector3f &rpy) const {
+        to_euler(rpy.x, rpy.y, rpy.z);
+    }
     void        to_euler(double &roll, double &pitch, double &yaw) const;
+    void        to_euler(Vector3d &rpy) const {
+        to_euler(rpy.x, rpy.y, rpy.z);
+    }
 
-    // create eulers from a quaternion
+    // create eulers from a quaternion with 312 ordering
     Vector3<T>    to_vector312(void) const;
 
     T length_squared(void) const;

@@ -14,10 +14,15 @@
  */
 
 /*
- *  main loop scheduler for APM
+ *  main loop scheduler for ArduPilot
  *  Author: Andrew Tridgell, January 2013
  *
  */
+
+#include "AP_Scheduler_config.h"
+
+#if AP_SCHEDULER_ENABLED
+
 #include "AP_Scheduler.h"
 
 #include <AP_HAL/AP_HAL.h>
@@ -28,6 +33,7 @@
 #include <AP_InternalError/AP_InternalError.h>
 #include <AP_Common/ExpandingString.h>
 #include <AP_HAL/SIMState.h>
+#include <AP_Vehicle/AP_Vehicle_Type.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
 #include <SITL/SITL.h>
@@ -55,8 +61,9 @@ const AP_Param::GroupInfo AP_Scheduler::var_info[] = {
     // @Param: LOOP_RATE
     // @DisplayName: Scheduling main loop rate
     // @Description: This controls the rate of the main control loop in Hz. This should only be changed by developers. This only takes effect on restart. Values over 400 are considered highly experimental.
-    // @Values: 50:50Hz,100:100Hz,200:200Hz,250:250Hz,300:300Hz,400:400Hz
+    // @Range: 50 400
     // @RebootRequired: True
+    // @Units: Hz
     // @User: Advanced
     AP_GROUPINFO("LOOP_RATE",  1, AP_Scheduler, _loop_rate_hz, SCHEDULER_DEFAULT_LOOP_RATE),
 
@@ -110,14 +117,16 @@ void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks, uint
     _vehicle_tasks = tasks;
     _num_vehicle_tasks = num_tasks;
 
+#if AP_VEHICLE_ENABLED
     AP_Vehicle* vehicle = AP::vehicle();
     if (vehicle != nullptr) {
         vehicle->get_common_scheduler_tasks(_common_tasks, _num_common_tasks);
     }
+#endif
 
     _num_tasks = _num_vehicle_tasks + _num_common_tasks;
 
-   _last_run = new uint16_t[_num_tasks];
+   _last_run = NEW_NOTHROW uint16_t[_num_tasks];
     _tick_counter = 0;
 
     // setup initial performance counters
@@ -154,6 +163,7 @@ void AP_Scheduler::init(const AP_Scheduler::Task *tasks, uint8_t num_tasks, uint
 void AP_Scheduler::tick(void)
 {
     _tick_counter++;
+    _tick_counter32++;
 }
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_SITL
@@ -275,10 +285,19 @@ void AP_Scheduler::run(uint32_t time_available)
         perf_info.update_task_info(i, time_taken, overrun);
 
         if (time_taken >= time_available) {
+            /*
+              we are out of time, but we need to keep walking the task
+              table in case there is another fast loop task after this
+              task, plus we need to update the accouting so we can
+              work out if we need to allocate extra time for the loop
+              (lower the loop rate)
+              Just set time_available to zero, which means we will
+              only run fast tasks after this one
+             */
             time_available = 0;
-            break;
+        } else {
+            time_available -= time_taken;
         }
-        time_available -= time_taken;
     }
 
     // update number of spare microseconds
@@ -308,12 +327,16 @@ uint16_t AP_Scheduler::time_available_usec(void) const
  */
 float AP_Scheduler::load_average()
 {
+    // return 1 if filtered main loop rate is 5% below the configured rate
+    if (get_filtered_loop_rate_hz() < get_loop_rate_hz() * 0.95) {
+        return 1.0;
+    }
     if (_spare_ticks == 0) {
         return 0.0f;
     }
     const uint32_t loop_us = get_loop_period_us();
     const uint32_t used_time = loop_us - (_spare_micros/_spare_ticks);
-    return used_time / (float)loop_us;
+    return constrain_float(used_time / (float)loop_us, 0, 1);
 }
 
 void AP_Scheduler::loop()
@@ -325,7 +348,8 @@ void AP_Scheduler::loop()
     _rsem.take_blocking();
     hal.util->persistent_data.scheduler_task = -1;
 
-    const uint32_t sample_time_us = AP_HAL::micros();
+    _loop_sample_time_us = AP_HAL::micros64();
+    const uint32_t sample_time_us = uint32_t(_loop_sample_time_us);
     
     if (_loop_timer_start_us == 0) {
         _loop_timer_start_us = sample_time_us;
@@ -340,7 +364,7 @@ void AP_Scheduler::loop()
           for testing low CPU conditions we can add an optional delay in SITL
         */
         auto *sitl = AP::sitl();
-        uint32_t loop_delay_us = sitl->loop_delay.get();
+        uint32_t loop_delay_us = sitl? sitl->loop_delay.get() : 1000U;
         hal.scheduler->delay_microseconds(loop_delay_us);
     }
 #endif
@@ -400,6 +424,7 @@ void AP_Scheduler::loop()
 #endif
 }
 
+#if HAL_LOGGING_ENABLED
 void AP_Scheduler::update_logging()
 {
     if (debug_flags()) {
@@ -426,6 +451,7 @@ void AP_Scheduler::Log_Write_Performance()
     struct log_Performance pkt = {
         LOG_PACKET_HEADER_INIT(LOG_PERFORMANCE_MSG),
         time_us          : AP_HAL::micros64(),
+        loop_rate        : (uint16_t)(get_filtered_loop_rate_hz() + 0.5f),
         num_long_running : perf_info.get_num_long_running(),
         num_loops        : perf_info.get_num_loops(),
         max_time         : perf_info.get_max_time(),
@@ -441,6 +467,7 @@ void AP_Scheduler::Log_Write_Performance()
     };
     AP::logger().WriteCriticalBlock(&pkt, sizeof(pkt));
 }
+#endif  // HAL_LOGGING_ENABLED
 
 // display task statistics as text buffer for @SYS/tasks.txt
 void AP_Scheduler::task_info(ExpandingString &str)
@@ -450,7 +477,7 @@ void AP_Scheduler::task_info(ExpandingString &str)
 
     // dynamically enable statistics collection
     if (!(_options & uint8_t(Options::RECORD_TASK_INFO))) {
-        _options |= uint8_t(Options::RECORD_TASK_INFO);
+        _options.set(_options | uint8_t(Options::RECORD_TASK_INFO));
         return;
     }
 
@@ -516,3 +543,5 @@ AP_Scheduler &scheduler()
 }
 
 };
+
+#endif  // AP_SCHEDULER_ENABLED

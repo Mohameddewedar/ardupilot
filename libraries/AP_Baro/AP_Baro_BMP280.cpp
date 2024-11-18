@@ -16,6 +16,7 @@
 
 #if AP_BARO_BMP280_ENABLED
 
+#include <AP_Math/definitions.h>
 #include <utility>
 
 extern const AP_HAL::HAL &hal;
@@ -59,7 +60,7 @@ AP_Baro_Backend *AP_Baro_BMP280::probe(AP_Baro &baro,
         return nullptr;
     }
 
-    AP_Baro_BMP280 *sensor = new AP_Baro_BMP280(baro, std::move(dev));
+    AP_Baro_BMP280 *sensor = NEW_NOTHROW AP_Baro_BMP280(baro, std::move(dev));
     if (!sensor || !sensor->_init()) {
         delete sensor;
         return nullptr;
@@ -126,7 +127,7 @@ bool AP_Baro_BMP280::_init()
 
 
 
-//  acumulate a new sensor reading
+//  accumulate a new sensor reading
 void AP_Baro_BMP280::_timer(void)
 {
     uint8_t buf[6];

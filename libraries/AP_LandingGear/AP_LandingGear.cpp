@@ -1,10 +1,20 @@
 #include "AP_LandingGear.h"
-#include <AP_Relay/AP_Relay.h>
+
+#if AP_LANDINGGEAR_ENABLED
+
 #include <AP_Math/AP_Math.h>
 #include <SRV_Channel/SRV_Channel.h>
 #include <AP_HAL/AP_HAL.h>
 #include <AP_Logger/AP_Logger.h>
 #include <GCS_MAVLink/GCS.h>
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+#include <SITL/SITL.h>
+#endif
+
+#if defined(APM_BUILD_TYPE)
+//  - this is just here to encourage the build system to supply the "legacy build defines".  The actual dependecy is in the AP_LandingGear.h and AP_LandingGear_config.h headers
+#endif
 
 extern const AP_HAL::HAL& hal;
 
@@ -47,14 +57,14 @@ const AP_Param::GroupInfo AP_LandingGear::var_info[] = {
     // @Values: -1:Disabled,50:AUX1,51:AUX2,52:AUX3,53:AUX4,54:AUX5,55:AUX6
     // @User: Standard
     // @RebootRequired: True
-    AP_GROUPINFO("WOW_PIN", 5, AP_LandingGear, _pin_weight_on_wheels, DEFAULT_PIN_WOW),
+    AP_GROUPINFO("WOW_PIN", 5, AP_LandingGear, _pin_weight_on_wheels, -1),
 
     // @Param: WOW_POL
     // @DisplayName: Weight on wheels feedback pin polarity
     // @Description: Polarity for feedback pin. If this is 1 then the pin should be high when there is weight on wheels. If set to 0 then then weight on wheels level is low.
     // @Values: 0:Low,1:High
     // @User: Standard
-    AP_GROUPINFO("WOW_POL", 6, AP_LandingGear, _pin_weight_on_wheels_polarity, DEFAULT_PIN_WOW_POL),
+    AP_GROUPINFO("WOW_POL", 6, AP_LandingGear, _pin_weight_on_wheels_polarity, 0),
 
     // @Param: DEPLOY_ALT
     // @DisplayName: Landing gear deployment altitude
@@ -91,6 +101,13 @@ AP_LandingGear *AP_LandingGear::_singleton;
 /// initialise state of landing gear
 void AP_LandingGear::init()
 {
+#if CONFIG_HAL_BOARD == HAL_BOARD_SITL
+    if (AP::sitl()->wow_pin > 0) {
+        _pin_weight_on_wheels.set_and_default(AP::sitl()->wow_pin);
+        _pin_weight_on_wheels_polarity.set_and_default(1);
+    }
+#endif
+
     if (!_enable.configured() && (SRV_Channels::function_assigned(SRV_Channel::k_landing_gear_control) || 
             (_pin_deployed > 0) || (_pin_weight_on_wheels > 0))) {
         // if not configured set enable param if output servo or sense pins are defined
@@ -151,13 +168,13 @@ void AP_LandingGear::deploy()
     // send message only if output has been configured
     if (!_deployed &&
         SRV_Channels::function_assigned(SRV_Channel::k_landing_gear_control)) {
-        gcs().send_text(MAV_SEVERITY_INFO, "LandingGear: DEPLOY");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "LandingGear: DEPLOY");
     }
 
     // set deployed flag
     _deployed = true;
     _have_changed = true;
-    AP::logger().Write_Event(LogEvent::LANDING_GEAR_DEPLOYED);
+    LOGGER_WRITE_EVENT(LogEvent::LANDING_GEAR_DEPLOYED);
 }
 
 /// retract - retract landing gear
@@ -173,11 +190,11 @@ void AP_LandingGear::retract()
     // reset deployed flag
     _deployed = false;
     _have_changed = true;
-    AP::logger().Write_Event(LogEvent::LANDING_GEAR_RETRACTED);
+    LOGGER_WRITE_EVENT(LogEvent::LANDING_GEAR_RETRACTED);
 
     // send message only if output has been configured
     if (SRV_Channels::function_assigned(SRV_Channel::k_landing_gear_control)) {
-        gcs().send_text(MAV_SEVERITY_INFO, "LandingGear: RETRACT");
+        GCS_SEND_TEXT(MAV_SEVERITY_INFO, "LandingGear: RETRACT");
     }
 }
 
@@ -286,6 +303,7 @@ void AP_LandingGear::update(float height_above_ground_m)
     _last_height_above_ground = alt_m;
 }
 
+#if HAL_LOGGING_ENABLED
 // log weight on wheels state
 void AP_LandingGear::log_wow_state(LG_WOW_State state)
 {
@@ -293,6 +311,7 @@ void AP_LandingGear::log_wow_state(LG_WOW_State state)
                                            AP_HAL::micros64(),
                                            (int8_t)gear_state_current, (int8_t)state);
 }
+#endif
 
 bool AP_LandingGear::check_before_land(void)
 {
@@ -320,3 +339,5 @@ void AP_LandingGear::deploy_for_landing()
         deploy();
     }
 }
+
+#endif

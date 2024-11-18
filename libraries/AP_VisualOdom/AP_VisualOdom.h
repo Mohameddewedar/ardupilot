@@ -20,7 +20,10 @@
 
 #include <AP_Common/AP_Common.h>
 #include <AP_Param/AP_Param.h>
-#include <GCS_MAVLink/GCS.h>
+#include <GCS_MAVLink/GCS_config.h>
+#if HAL_GCS_ENABLED
+#include <GCS_MAVLink/GCS_MAVLink.h>
+#endif
 #include <AP_Math/AP_Math.h>
 
 class AP_VisualOdom_Backend;
@@ -41,9 +44,13 @@ public:
     // external position backend types (used by _TYPE parameter)
     enum class VisualOdom_Type {
         None         = 0,
+#if AP_VISUALODOM_MAV_ENABLED
         MAV          = 1,
+#endif
+#if AP_VISUALODOM_INTELT265_ENABLED
         IntelT265    = 2,
         VOXL         = 3,
+#endif
     };
 
     // detect and initialise any sensors
@@ -76,6 +83,13 @@ public:
     // return yaw measurement noise in rad
     float get_yaw_noise() const { return _yaw_noise; }
 
+    // return quality threshold
+    int8_t get_quality_min() const { return _quality_min; }
+
+    // return quality as a measure from -1 ~ 100
+    // -1 means failed, 0 means unknown, 1 is worst, 100 is best
+    int8_t quality() const;
+
 #if HAL_GCS_ENABLED
     // consume vision_position_delta mavlink messages
     void handle_vision_position_delta_msg(const mavlink_message_t &msg);
@@ -83,15 +97,17 @@ public:
 
     // general purpose methods to consume position estimate data and send to EKF
     // distances in meters, roll, pitch and yaw are in radians
-    void handle_vision_position_estimate(uint64_t remote_time_us, uint32_t time_ms, float x, float y, float z, float roll, float pitch, float yaw, float posErr, float angErr, uint8_t reset_counter);
-    void handle_vision_position_estimate(uint64_t remote_time_us, uint32_t time_ms, float x, float y, float z, const Quaternion &attitude, float posErr, float angErr, uint8_t reset_counter);
+    // quality of -1 means failed, 0 means unknown, 1 is worst, 100 is best
+    void handle_pose_estimate(uint64_t remote_time_us, uint32_t time_ms, float x, float y, float z, float roll, float pitch, float yaw, float posErr, float angErr, uint8_t reset_counter, int8_t quality);
+    void handle_pose_estimate(uint64_t remote_time_us, uint32_t time_ms, float x, float y, float z, const Quaternion &attitude, float posErr, float angErr, uint8_t reset_counter, int8_t quality);
     
     // general purpose methods to consume velocity estimate data and send to EKF
     // velocity in NED meters per second
-    void handle_vision_speed_estimate(uint64_t remote_time_us, uint32_t time_ms, const Vector3f &vel, uint8_t reset_counter);
+    // quality of -1 means failed, 0 means unknown, 1 is worst, 100 is best
+    void handle_vision_speed_estimate(uint64_t remote_time_us, uint32_t time_ms, const Vector3f &vel, uint8_t reset_counter, int8_t quality);
 
-    // calibrate camera attitude to align with vehicle's AHRS/EKF attitude
-    void align_sensor_to_vehicle();
+    // request sensor's yaw be aligned with vehicle's AHRS/EKF attitude
+    void request_align_yaw_to_ahrs();
 
     // update position offsets to align to AHRS position
     // should only be called when this library is not being used as the position source
@@ -119,6 +135,7 @@ private:
     AP_Float _vel_noise;        // velocity measurement noise in m/s
     AP_Float _pos_noise;        // position measurement noise in meters
     AP_Float _yaw_noise;        // yaw measurement noise in radians
+    AP_Int8 _quality_min;       // positions and velocities will only be sent to EKF if over this value.  if 0 all values sent to EKF
 
     // reference to backends
     AP_VisualOdom_Backend *_driver;

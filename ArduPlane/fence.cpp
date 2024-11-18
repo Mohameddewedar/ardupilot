@@ -8,9 +8,32 @@
 void Plane::fence_check()
 {
     const uint8_t orig_breaches = fence.get_breaches();
+    const bool armed = arming.is_armed();
+
+    uint16_t mission_id = plane.mission.get_current_nav_cmd().id;
+    bool landing_or_landed = plane.flight_stage == AP_FixedWing::FlightStage::LAND
+                         || !armed
+#if HAL_QUADPLANE_ENABLED
+                         || control_mode->mode_number() == Mode::Number::QLAND
+                         || quadplane.in_vtol_land_descent()
+#endif
+                         || (plane.is_land_command(mission_id) && plane.mission.state() == AP_Mission::MISSION_RUNNING);
 
     // check for new breaches; new_breaches is bitmask of fence types breached
-    const uint8_t new_breaches = fence.check();
+    const uint8_t new_breaches = fence.check(landing_or_landed);
+
+    /*
+      if we are either disarmed or we are currently not in breach and
+      we are not flying then clear the state associated with the
+      previous mode breach handling. This allows the fence state
+      machine to reset at the end of a fence breach action such as an
+      RTL and autoland
+     */
+    if (plane.previous_mode_reason == ModeReason::FENCE_BREACHED) {
+        if (!armed || ((new_breaches == 0 && orig_breaches == 0) && !plane.is_flying())) {
+            plane.previous_mode_reason = ModeReason::UNKNOWN;
+        }
+    }
 
     if (!fence.enabled()) {
         // Switch back to the chosen control mode if still in
@@ -34,7 +57,7 @@ void Plane::fence_check()
     // we still don't do anything when disarmed, but we do check for fence breaches.
     // fence pre-arm check actually checks if any fence has been breached
     // that's not ever going to be true if we don't call check on AP_Fence while disarmed
-    if (!arming.is_armed()) {
+    if (!armed) {
         return;
     }
 
@@ -43,23 +66,15 @@ void Plane::fence_check()
         return;
     }
 
-    const bool current_mode_breach = plane.control_mode_reason == ModeReason::FENCE_BREACHED;
-    const bool previous_mode_breach = plane.previous_mode_reason ==  ModeReason::FENCE_BREACHED;
-    const bool previous_mode_complete = (plane.control_mode_reason == ModeReason::RTL_COMPLETE_SWITCHING_TO_VTOL_LAND_RTL) ||
-                                        (plane.control_mode_reason == ModeReason::RTL_COMPLETE_SWITCHING_TO_FIXEDWING_AUTOLAND) ||
-                                        (plane.control_mode_reason == ModeReason::QRTL_INSTEAD_OF_RTL) ||
-                                        (plane.control_mode_reason == ModeReason::QLAND_INSTEAD_OF_RTL);
-    if (orig_breaches && (current_mode_breach || (previous_mode_breach && previous_mode_complete))) {
+    if (in_fence_recovery()) {
         // we have already triggered, don't trigger again until the
         // user disables/re-enables using the fence channel switch
         return;
     }
-    
-     if(new_breaches && plane.is_flying()) {
-         GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Fence Breached");
-     }
 
-    if (new_breaches || orig_breaches) {
+    if (new_breaches) {
+        fence.print_fence_message("breached", new_breaches);
+
         // if the user wants some kind of response and motors are armed
         const uint8_t fence_act = fence.get_action();
         switch (fence_act) {
@@ -83,7 +98,7 @@ void Plane::fence_check()
 
             Location loc;
             if (fence.get_return_rally() != 0 || fence_act == AC_FENCE_ACTION_RTL_AND_LAND) {
-                loc = rally.calc_best_rally_or_home_location(current_loc, get_RTL_altitude_cm());
+                loc = calc_best_rally_or_home_location(current_loc, get_RTL_altitude_cm());
             } else {
                 //return to fence return point, not a rally point
                 if (fence.get_return_altitude() > 0) {
@@ -91,7 +106,7 @@ void Plane::fence_check()
                     loc.alt = home.alt + 100.0f * fence.get_return_altitude();
                 } else if (fence.get_safe_alt_min() >= fence.get_safe_alt_max()) {
                     // invalid min/max, use RTL_altitude
-                    loc.alt = home.alt + g.RTL_altitude_cm;
+                    loc.alt = home.alt + g.RTL_altitude*100;
                 } else {
                     // fly to the return point, with an altitude half way between
                     // min and max
@@ -122,10 +137,11 @@ void Plane::fence_check()
             break;
         }
 
-        AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_FENCE, LogErrorCode(new_breaches));
-    } else if (orig_breaches) {
+        LOGGER_WRITE_ERROR(LogErrorSubsystem::FAILSAFE_FENCE, LogErrorCode(new_breaches));
+    } else if (orig_breaches && fence.get_breaches() == 0) {
+        GCS_SEND_TEXT(MAV_SEVERITY_NOTICE, "Fence breach cleared");
         // record clearing of breach
-        AP::logger().Write_Error(LogErrorSubsystem::FAILSAFE_FENCE, LogErrorCode::ERROR_RESOLVED);
+        LOGGER_WRITE_ERROR(LogErrorSubsystem::FAILSAFE_FENCE, LogErrorCode::ERROR_RESOLVED);
     }
 }
 
@@ -133,13 +149,25 @@ bool Plane::fence_stickmixing(void) const
 {
     if (fence.enabled() &&
         fence.get_breaches() &&
-        control_mode->is_guided_mode())
+        in_fence_recovery())
     {
         // don't mix in user input
         return false;
     }
     // normal mixing rules
     return true;
+}
+
+bool Plane::in_fence_recovery() const
+{
+    const bool current_mode_breach = plane.control_mode_reason == ModeReason::FENCE_BREACHED;
+    const bool previous_mode_breach = plane.previous_mode_reason ==  ModeReason::FENCE_BREACHED;
+    const bool previous_mode_complete = (plane.control_mode_reason == ModeReason::RTL_COMPLETE_SWITCHING_TO_VTOL_LAND_RTL) ||
+                                        (plane.control_mode_reason == ModeReason::RTL_COMPLETE_SWITCHING_TO_FIXEDWING_AUTOLAND) ||
+                                        (plane.control_mode_reason == ModeReason::QRTL_INSTEAD_OF_RTL) ||
+                                        (plane.control_mode_reason == ModeReason::QLAND_INSTEAD_OF_RTL);
+
+    return current_mode_breach || (previous_mode_breach && previous_mode_complete);
 }
 
 #endif

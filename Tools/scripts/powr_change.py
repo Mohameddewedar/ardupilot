@@ -28,7 +28,9 @@ class POWRChange(object):
         if 1 << bit_number not in mavutil.mavlink.enums["MAV_POWER_STATUS"]:
             return "UNKNOWN_BIT[%u]" % bit_number
 
-        return mavutil.mavlink.enums["MAV_POWER_STATUS"][1 << bit_number].name
+        name = mavutil.mavlink.enums["MAV_POWER_STATUS"][1 << bit_number].name
+        # return name with common prefix removed:
+        return name[len("MAV_POWER_STATUS_"):]
 
     def run(self):
 
@@ -68,8 +70,6 @@ class POWRChange(object):
 
                     if new_acc_bit_set and not old_acc_bit_set:
                         line += " ACCFLAGS+%s" % self.bit_description(bit)
-                    elif not new_bit_set and old_bit_set:
-                        line += " ACCFLAGS-%s" % self.bit_description(bit)
 
             if len(line) == 0:
                 continue

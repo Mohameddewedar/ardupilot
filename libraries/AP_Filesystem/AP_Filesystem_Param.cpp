@@ -15,6 +15,11 @@
 /*
   ArduPilot filesystem interface for parameters
  */
+
+#include "AP_Filesystem_config.h"
+
+#if AP_FILESYSTEM_PARAM_ENABLED
+
 #include "AP_Filesystem.h"
 #include "AP_Filesystem_Param.h"
 #include <AP_Param/AP_Param.h>
@@ -24,7 +29,11 @@
 #define PACKED_NAME "param.pck"
 
 extern const AP_HAL::HAL& hal;
+
+// QURT HAL already has a declaration of errno in errno.h
+#if CONFIG_HAL_BOARD != HAL_BOARD_QURT
 extern int errno;
+#endif
 
 int AP_Filesystem_Param::open(const char *fname, int flags, bool allow_absolute_path)
 {
@@ -45,7 +54,7 @@ int AP_Filesystem_Param::open(const char *fname, int flags, bool allow_absolute_
     }
     struct rfile &r = file[idx];
     if (read_only) {
-        r.cursors = new cursor[num_cursors];
+        r.cursors = NEW_NOTHROW cursor[num_cursors];
         if (r.cursors == nullptr) {
             errno = ENOMEM;
             return -1;
@@ -61,7 +70,7 @@ int AP_Filesystem_Param::open(const char *fname, int flags, bool allow_absolute_
     r.writebuf = nullptr;
     if (!read_only) {
         // setup for upload
-        r.writebuf = new ExpandingString();
+        r.writebuf = NEW_NOTHROW ExpandingString();
         if (r.writebuf == nullptr) {
             close(idx);
             errno = ENOMEM;
@@ -183,6 +192,11 @@ uint8_t AP_Filesystem_Param::pack_param(const struct rfile &r, struct cursor &c,
         ap = AP_Param::next_scalar(&c.token, &ptype, &default_val);
     }
     if (ap == nullptr || (r.count && c.idx >= r.count)) {
+        if (r.count == 0 && c.idx != AP_Param::count_parameters()) {
+            // the parameter count is incorrect, invalidate so a
+            // repeated param download avoids an error
+            AP_Param::invalidate_count();
+        }
         return 0;
     }
     ap->copy_name_token(c.token, name, AP_MAX_NAME_SIZE, true);
@@ -464,8 +478,8 @@ int AP_Filesystem_Param::stat(const char *name, struct stat *stbuf)
         return -1;
     }
     memset(stbuf, 0, sizeof(*stbuf));
-    // give fixed size to avoid needing to scan entire file
-    stbuf->st_size = 1024*1024;
+    // give size estimation to avoid needing to scan entire file
+    stbuf->st_size = AP_Param::count_parameters() * 12;
     return 0;
 }
 
@@ -646,3 +660,5 @@ bool AP_Filesystem_Param::finish_upload(const rfile &r)
     }
     return true;
 }
+
+#endif  // AP_FILESYSTEM_PARAM_ENABLED

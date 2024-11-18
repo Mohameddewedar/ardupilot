@@ -3,14 +3,6 @@
 // Internal defines, don't edit and expect things to work
 // -------------------------------------------------------
 
-// Just so that it's completely clear...
-#define ENABLED  1
-#define DISABLED 0
-
-// this avoids a very common config error
-#define ENABLE ENABLED
-#define DISABLE DISABLED
-
 #define SERVO_MAX 4500.0  // This value represents 45 degrees and is just an arbitrary representation of servo max travel.
 
 // types of failsafe events
@@ -43,7 +35,7 @@ enum LoggingParameters {
 // #define MASK_LOG_ARM_DISARM     (1<<15)
 #define MASK_LOG_IMU_RAW        (1UL<<19)
 #define MASK_LOG_VIDEO_STABILISATION (1UL<<20)
-
+#define MASK_LOG_OPTFLOW                (1UL<<21)
 
 // for mavlink SET_POSITION_TARGET messages
 #define MAVLINK_SET_POS_TYPE_MASK_POS_IGNORE      ((1<<0) | (1<<1))
@@ -88,11 +80,11 @@ enum fs_ekf_action {
 
 #define DISTANCE_HOME_MINCHANGE 0.5f  // minimum distance to adjust home location
 
-enum pilot_steer_type_t {
-    PILOT_STEER_TYPE_DEFAULT = 0,
-    PILOT_STEER_TYPE_TWO_PADDLES = 1,
-    PILOT_STEER_TYPE_DIR_REVERSED_WHEN_REVERSING = 2,
-    PILOT_STEER_TYPE_DIR_UNCHANGED_WHEN_REVERSING = 3,
+enum class PilotSteerType : uint8_t {
+    DEFAULT = 0,
+    TWO_PADDLES = 1,
+    DIR_REVERSED_WHEN_REVERSING = 2,
+    DIR_UNCHANGED_WHEN_REVERSING = 3,
 };
 
 // frame class enum used for FRAME_CLASS parameter

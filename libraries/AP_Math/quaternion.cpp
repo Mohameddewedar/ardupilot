@@ -381,8 +381,8 @@ void QuaternionT<T>::from_rotation(enum Rotation rotation)
 
     case ROTATION_CUSTOM_1:
     case ROTATION_CUSTOM_2:
-#if !APM_BUILD_TYPE(APM_BUILD_AP_Periph)
-        // Do not support custom rotations on Periph
+#if AP_CUSTOMROTATIONS_ENABLED
+        // custom rotations not supported on eg. Periph by default
         AP::custom_rotations().from_rotation(rotation, *this);
         return;
 #endif
@@ -533,6 +533,21 @@ void QuaternionT<T>::from_axis_angle_fast(const Vector3<T> &axis, T theta)
     q3 = axis.y * st2;
     q4 = axis.z * st2;
 }
+
+// create a quaternion by integrating an angular velocity over some time_delta, which is 
+// assumed to be small
+template <typename T>
+void QuaternionT<T>::from_angular_velocity(const Vector3<T>& angular_velocity, float time_delta)
+{
+    const float half_time_delta = 0.5f*time_delta;
+
+    q1 = 1.0;
+    q2 = half_time_delta*angular_velocity.x;
+    q3 = half_time_delta*angular_velocity.y;
+    q4 = half_time_delta*angular_velocity.z;
+    normalize();
+}
+
 
 // rotate by the provided axis angle
 // only use with small angles.  I.e. length of v should less than 0.17 radians (i.e. 10 degrees)

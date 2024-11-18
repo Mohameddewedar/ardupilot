@@ -47,9 +47,11 @@ do {                                            \
  # define Debug(fmt, args ...)
 #endif
 
-AP_GPS_SBP::AP_GPS_SBP(AP_GPS &_gps, AP_GPS::GPS_State &_state,
+AP_GPS_SBP::AP_GPS_SBP(AP_GPS &_gps,
+                       AP_GPS::Params &_params,
+                       AP_GPS::GPS_State &_state,
                        AP_HAL::UARTDriver *_port) :
-    AP_GPS_Backend(_gps, _state, _port)
+    AP_GPS_Backend(_gps, _params, _state, _port)
 {
 
     Debug("SBP Driver Initialized");
@@ -100,6 +102,9 @@ AP_GPS_SBP::_sbp_process()
 
     while (port->available() > 0) {
         uint8_t temp = port->read();
+#if AP_GPS_DEBUG_LOGGING_ENABLED
+        log_data(&temp, 1);
+#endif
         uint16_t crc;
 
 
@@ -270,10 +275,7 @@ AP_GPS_SBP::_attempt_state_update()
         state.velocity[2]       = (float)(last_vel_ned.d * 1.0e-3);
         state.have_vertical_velocity = true;
 
-        float ground_vector_sq = state.velocity[0]*state.velocity[0] + state.velocity[1]*state.velocity[1];
-        state.ground_speed = safe_sqrt(ground_vector_sq);
-
-        state.ground_course = wrap_360(degrees(atan2f(state.velocity[1], state.velocity[0])));
+        velocity_to_speed_course(state);
 
         // Update position state
 

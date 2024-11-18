@@ -12,6 +12,9 @@
 -- "arg2" specifies the height (e.g. North-South) in meters
 -- Once the vehicle completes the square or the timeout expires the mission will continue and the vehicle should RTL home
 
+---@diagnostic disable: param-type-mismatch
+---@diagnostic disable: need-check-nil
+
 local running = false
 local last_id = -1          -- unique id used to detect if a new NAV_SCRIPT_TIME command has started
 local start_loc             -- vehicle's location when command starts (South-West corner of square)
@@ -24,7 +27,7 @@ local stage = 0             -- stage0: fly North arg2 meters
 local prev_stage = -1       -- previous stage, used to initate call to move to next corner
 
 function update()
-  id, cmd, arg1, arg2 = vehicle:nav_script_time()
+  id, cmd, arg1, arg2, arg3, arg4 = vehicle:nav_script_time()
   if id then
     -- handle start of new command
     if id ~= last_id then

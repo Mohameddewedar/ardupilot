@@ -21,18 +21,12 @@
  */
 #pragma once
 
-#include <AP_HAL/AP_HAL.h>
-#include <AP_Vehicle/AP_Vehicle_Type.h>
-
-#ifndef HAL_RUNCAM_ENABLED
-#define HAL_RUNCAM_ENABLED !HAL_MINIMIZE_FEATURES
-#endif
+#include "AP_Camera_config.h"
 
 #if HAL_RUNCAM_ENABLED
 
 #include <AP_Param/AP_Param.h>
 #include <RC_Channel/RC_Channel.h>
-#include <AP_RCMapper/AP_RCMapper.h>
 #include <AP_Arming/AP_Arming.h>
 #include <AP_OSD/AP_OSD.h>
 
@@ -50,8 +44,7 @@ public:
     AP_RunCam();
 
     // do not allow copies
-    AP_RunCam(const AP_RunCam &other) = delete;
-    AP_RunCam &operator=(const AP_RunCam &) = delete;
+    CLASS_NO_COPY(AP_RunCam);
 
     // get singleton instance
     static AP_RunCam *get_singleton() {
@@ -64,6 +57,7 @@ public:
         Split = 2, // camera and video support
         Split4k = 3, // video support only + 5key OSD
         Hybrid = 4, // video support + QR mode switch
+		Run24k = 5, // camera and video support like Split but recording command like Split4k
     };
 
     // operation of camera button simulation
@@ -109,7 +103,7 @@ public:
 private:
     // definitions prefixed with RCDEVICE taken from https://support.runcam.com/hc/en-us/articles/360014537794-RunCam-Device-Protocol
     // possible supported features
-    // RunCam Split 3S micro reports 0x77 (POWER, WIFI, MODE, SETTING, DPORT, START)
+    // RunCam 2 4k and Split 3S micro reports 0x77 (POWER, WIFI, MODE, SETTING, DPORT, START)
     // RunCam Split 2S reports 0x57 (POWER, WIFI, MODE, SETTING, START)
     // RunCam Racer 3 reports 0x08 (OSD)
     enum class Feature {
@@ -218,7 +212,7 @@ private:
     static const uint8_t  RUNCAM_NUM_EXPECTED_RESPONSES = 4;
     static const uint8_t  RUNCAM_MAX_MENUS =              1;
     static const uint8_t  RUNCAM_MAX_MENU_LENGTH =        6;
-    static const uint8_t  RUNCAM_MAX_DEVICE_TYPES =       4;
+    static const uint8_t  RUNCAM_MAX_DEVICE_TYPES =       5;
 
     // supported features, usually probed from the device
     AP_Int16 _features;

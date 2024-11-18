@@ -14,23 +14,15 @@
  */
 #pragma once
 
-#include <AP_Common/AP_Common.h>
-#include <AP_HAL/AP_HAL_Boards.h>
-#include <AP_Common/Location.h>
-#include <AP_Filesystem/AP_Filesystem_Available.h>
-#include <GCS_MAVLink/GCS_MAVLink.h>
-
-#ifndef AP_TERRAIN_AVAILABLE
-#if HAVE_FILESYSTEM_SUPPORT && defined(HAL_BOARD_TERRAIN_DIRECTORY)
-#define AP_TERRAIN_AVAILABLE 1
-#else
-#define AP_TERRAIN_AVAILABLE 0
-#endif
-#endif
+#include "AP_Terrain_config.h"
 
 #if AP_TERRAIN_AVAILABLE
 
+#include <AP_Common/AP_Common.h>
+#include <AP_Common/Location.h>
 #include <AP_Param/AP_Param.h>
+#include <GCS_MAVLink/GCS_MAVLink.h>
+#include <AP_Logger/AP_Logger_config.h>
 
 #define TERRAIN_DEBUG 0
 
@@ -54,7 +46,9 @@
 #define TERRAIN_GRID_BLOCK_SIZE_Y (TERRAIN_GRID_MAVLINK_SIZE*TERRAIN_GRID_BLOCK_MUL_Y)
 
 // number of grid_blocks in the LRU memory cache
+#ifndef TERRAIN_GRID_BLOCK_CACHE_SIZE
 #define TERRAIN_GRID_BLOCK_CACHE_SIZE 12
+#endif
 
 // format of grid on disk
 #define TERRAIN_GRID_FORMAT_VERSION 1
@@ -102,20 +96,27 @@ public:
     void update(void);
 
     bool enabled() const { return enable; }
-    void set_enabled(bool _enable) { enable = _enable; }
+    void set_enabled(bool _enable) { enable.set(_enable); }
 
     // return status enum for health reporting
     enum TerrainStatus status(void) const { return system_status; }
 
+    bool pre_arm_checks(char *failure_msg, uint8_t failure_msg_len) const;
+
+#if HAL_GCS_ENABLED
     // send any pending terrain request message
     bool send_cache_request(mavlink_channel_t chan);
     void send_request(mavlink_channel_t chan);
 
     // handle terrain data and reports from GCS
+    // send a terrain report for the current location, extrapolating height as we do for navigation:
+    void send_report(mavlink_channel_t chan);
+    // send a terrain report or Location loc
     void send_terrain_report(mavlink_channel_t chan, const Location &loc, bool extrapolate);
     void handle_data(mavlink_channel_t chan, const mavlink_message_t &msg);
     void handle_terrain_check(mavlink_channel_t chan, const mavlink_message_t &msg);
     void handle_terrain_data(const mavlink_message_t &msg);
+#endif
 
     /*
       find the terrain height in meters above sea level for a location
@@ -174,15 +175,22 @@ public:
      */
     float lookahead(float bearing, float distance, float climb_ratio);
 
+#if HAL_LOGGING_ENABLED
     /*
       log terrain status to AP_Logger
      */
     void log_terrain_data();
+#endif
 
     /*
       get some statistics for TERRAIN_REPORT
      */
     void get_statistics(uint16_t &pending, uint16_t &loaded) const;
+
+    /*
+      get grid spacing in meters
+     */
+    uint16_t get_grid_spacing() const { return MAX(grid_spacing, 0); };
 
     /*
       returns true if initialisation failed because out-of-memory
@@ -310,11 +318,13 @@ private:
     */
     bool check_bitmap(const struct grid_block &grid, uint8_t idx_x, uint8_t idx_y);
 
+#if HAL_GCS_ENABLED
     /*
       request any missing 4x4 grids from a block
     */
     bool request_missing(mavlink_channel_t chan, struct grid_cache &gcache);
     bool request_missing(mavlink_channel_t chan, const struct grid_info &info);
+#endif
 
     /*
       look for blocks that need to be read/written to disk
@@ -340,6 +350,9 @@ private:
     void write_block(void);
     void read_block(void);
 
+    // check for missing data in squares surrounding loc:
+    bool update_surrounding_tiles(const Location &loc);
+
     /*
       check for missing mission terrain data
      */
@@ -362,6 +375,7 @@ private:
     AP_Int16 grid_spacing; // meters between grid points
     AP_Int16 options; // option bits
     AP_Float offset_max;
+    AP_Int16 config_cache_size;
 
     enum class Options {
         DisableDownload = (1U<<0),
@@ -382,8 +396,10 @@ private:
     volatile enum DiskIoState disk_io_state;
     union grid_io_block disk_block;
 
+#if HAL_GCS_ENABLED
     // last time we asked for more grids
     uint32_t last_request_time_ms[MAVLINK_COMM_NUM_BUFFERS];
+#endif
 
     static const uint64_t bitmap_mask = (((uint64_t)1U)<<(TERRAIN_GRID_BLOCK_MUL_X*TERRAIN_GRID_BLOCK_MUL_Y)) - 1;
 
@@ -407,6 +423,7 @@ private:
     // cache the home altitude, as it is needed so often
     float home_height;
     Location home_loc;
+    bool have_home_height;
 
     // reference position for terrain adjustment, set at arming
     bool have_reference_loc;
@@ -422,6 +439,10 @@ private:
     // temporarily unavailable
     bool have_current_loc_height;
     float last_current_loc_height;
+
+    // true if we have all of the data for the squares around the
+    // current location:
+    bool have_surrounding_tiles;
 
     // next mission command to check
     uint16_t next_mission_index;
