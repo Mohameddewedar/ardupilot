@@ -1,8 +1,5 @@
 # hw definition file for processing by chibios_hwdef.py
-# for FMUv3 hardware (ie. for Pixhawk1, Pixhawk2 cube, XUAV2.1 etc)
-
-# This hwdef.dat file contains a lot of comments so it can act as a
-# reference for developers adding new boards.
+# for MTC Guidance department autopilot project
 
 # The hwdef.dat file defines all the hardware peripherals and pins for
 # a port of ArduPilot to a board using the ChibiOS HAL. You should be
@@ -42,7 +39,12 @@
 # extract the required DMA and alternate function tables.
 
 # MCU class and specific type
-MCU STM32F4xx STM32F427xx
+MCU STM32F4xx STM32F429xx
+
+# We set a specific HAL_BOARD_SUBTYPE, allowing for custom config in
+# drivers. For this to be used the subtype needs to be added to
+# AP_HAL/AP_HAL_Boards.h as well.
+# define CONFIG_HAL_BOARD_SUBTYPE HAL_BOARD_SUBTYPE_CHIBIOS_FMUV3
 
 # Now we need to specify the APJ_BOARD_ID. This is the ID that the
 # bootloader presents to GCS software so it knows if this firmware is
@@ -53,21 +55,25 @@ MCU STM32F4xx STM32F427xx
 
 # Note that APJ is "ArduPilot JSON Firmware Format".
 
-# board ID. See Tools/AP_Bootloader/board_types.txt
-APJ_BOARD_ID TARGET_HW_CUBE_F4
+# board ID for firmware load
+APJ_BOARD_ID 5656
 
 # Now you need to say what crystal frequency you have for this
 # board. All of the clocks are scaled against this. Typical values are
 # 24000000 or 8000000.
 
 # crystal frequency
-OSCILLATOR_HZ 24000000
+OSCILLATOR_HZ 8000000
 
 # On some boards you will need to also set the various PLL values. See
 # the defaults in common/mcuconf.h, and use the define mechanism
 # explained later in this file to override values suitable for your
 # board. Refer to your MCU datasheet or examples from supported boards
 # in ChibiOS for the right values.
+
+# Now define the voltage the MCU runs at. This is needed for ChibiOS
+# to set various internal driver limits. It is in 0.01 volt units.
+
 
 # This is the STM32 timer that ChibiOS will use for the low level
 # driver. This must be a 32 bit timer. We currently only support
@@ -102,7 +108,7 @@ FLASH_SIZE_KB 2048
 # If creating a board for a RTF vehicle you may wish to customise these.
 
 # USB setup
-USB_STRING_MANUFACTURER "ArduPilot"
+USB_STRING_MANUFACTURER "MTC/GuidancePilot"
 
 # Now define the order that I2C buses are presented in the hal.i2c API
 # in ArduPilot. For historical reasons inherited from HAL_PX4 the
@@ -135,7 +141,7 @@ SERIAL_ORDER OTG1 USART2 USART3 UART4 UART8 UART7
 # UART to talk to that MCU. Leave it out for boards with no IOMCU.
 
 # UART for IOMCU
-IOMCU_UART USART6
+# IOMCU_UART USART6
 
 # Now we start on the pin definitions. Every pin used by ArduPilot
 # needs to be in this file. The pins in this file can be defined in any order.
@@ -191,8 +197,8 @@ PA3 BATT_CURRENT_SENS ADC1 SCALE(1)
 PA4 VDD_5V_SENS ADC1 SCALE(2)
 
 # Now the first SPI bus. At minimum you need SCK, MISO and MOSI pin
-definitions. You can add speed modifiers if you want them, otherwise
-the defaults for the peripheral class are used.
+# definitions. You can add speed modifiers if you want them, otherwise
+# the defaults for the peripheral class are used.
 
 PA5 SPI1_SCK SPI1
 PA6 SPI1_MISO SPI1
@@ -213,12 +219,15 @@ PA9 VBUS INPUT OPENDRAIN
 # PA10 IO-debug-console
 
 # Now we define the pins that USB is connected on.
-PA11 OTG_FS_DM OTG1
-PA12 OTG_FS_DP OTG1
+PA11 USB_OTG_FS_DM OTG1
+PA12 USB_OTG_FS_DP OTG1
+
+# Define OTG Power Pin
+# PC4 PSO_OTG1_FS OUTPUT HIGH
 
 # These are the pins for SWD debugging with a STlinkv2 or black-magic probe.
-PA13 JTMS-SWDIO SWD
-PA14 JTCK-SWCLK SWD
+PA13 SYS_JTMS-SWDIO SWD
+PA14 SYS_JTCK-SWCLK SWD
 
 # This defines the PWM pin for the buzzer (if there is one). It is
 # also mapped to a GPIO output so you can play with the buzzer via
@@ -264,8 +273,8 @@ PC1 MAG_CS CS
 PC2 MPU_CS CS
 
 # This defines more ADC inputs.
-PC3 AUX_POWER ADC1 SCALE(1)
-PC4 AUX_ADC2 ADC1 SCALE(1)
+# PC3 AUX_POWER ADC1 SCALE(1)
+# PC4 AUX_ADC2 ADC1 SCALE(1)
 
 # And the analog input for airspeed (rarely used these days).
 PC5 PRESSURE_SENS ADC1 SCALE(2)
@@ -275,8 +284,8 @@ PC5 PRESSURE_SENS ADC1 SCALE(2)
 # for more information.
 
 #  USART6 to IO
-PC6 USART6_TX USART6
-PC7 USART6_RX USART6
+# PC6 USART6_TX USART6
+# PC7 USART6_RX USART6
 
 # Now setup the pins for the microSD card, if available.
 PC8 SDIO_D0 SDIO
@@ -352,15 +361,15 @@ PE7 UART7_RX UART7
 PE8 UART7_TX UART7
 
 # Define a LED, mapping it to GPIO(0). LOW will illuminate the LED
-PE12 FMU_LED_AMBER OUTPUT HIGH OPENDRAIN GPIO(0)
+# PE12 FMU_LED_AMBER OUTPUT HIGH OPENDRAIN GPIO(0)
 
 # Power flag pins: these tell the MCU the status of the various power
 # supplies that are available. The pin names need to exactly match the
 # names used in AnalogIn.cpp. 
-PB5 VDD_BRICK_nVALID INPUT PULLUP
-PB7 VDD_BRICK2_nVALID INPUT PULLUP
-PE10 VDD_5V_HIPOWER_nOC INPUT PULLUP
-PE15 VDD_5V_PERIPH_nOC INPUT PULLUP
+# PB5 VDD_BRICK_nVALID INPUT PULLUP
+# PB7 VDD_BRICK2_nVALID INPUT PULLUP
+# PE10 VDD_5V_HIPOWER_nOC INPUT PULLUP
+# PE15 VDD_5V_PERIPH_nOC INPUT PULLUP
 
 # Now the SPI device table. This table creates all accessible SPI
 # devices, giving the name of the device (which is used by device
@@ -426,12 +435,12 @@ define HAL_HAVE_SAFETY_SWITCH 1
 # This enables the use of a ramtron device for storage, if one is
 # found on SPI. You must have a ramtron entry in the SPI device table.
 
-# Enable RAMTRON parameter storage.
-define HAL_WITH_RAMTRON 1
+# Enable RAMTROM parameter storage.
+# define HAL_WITH_RAMTRON 1
 
 # Setup for the possibility of an IMU heater since the pixhawk2 cube has
 # an IMU heater.
-define HAL_HAVE_IMU_HEATER 1
+# define HAL_HAVE_IMU_HEATER 1
 
 # Enable FAT filesystem support (needs a microSD defined via SDIO).
 define HAL_OS_FATFS_IO 1
@@ -454,14 +463,37 @@ DMA_PRIORITY USART6* SPI*
 # we can automatically update the IOMCU firmware on boot. The format
 # is "ROMFS ROMFS-filename source-filename". Paths are relative to the
 # ardupilot root.
-ROMFS io_firmware.bin Tools/IO_Firmware/iofirmware_lowpolh.bin
+# ROMFS io_firmware.bin Tools/IO_Firmware/iofirmware_lowpolh.bin
+# ROMFS io_firmware.bin Tools/IO_Firmware/iofirmware_highpolh.bin
 
 # for users running fmuv3 on their Solo:
-define AP_NOTIFY_OREOLED_ENABLED (BOARD_FLASH_SIZE > 1024)
-define HAL_SOLO_GIMBAL_ENABLED (HAL_MOUNT_ENABLED && BOARD_FLASH_SIZE > 1024)
+# define AP_NOTIFY_OREOLED_ENABLED (BOARD_FLASH_SIZE > 1024)
+# define HAL_SOLO_GIMBAL_ENABLED (HAL_MOUNT_ENABLED && BOARD_FLASH_SIZE > 1024)
 
-undef AP_BATTERY_SMBUS_SOLO_ENABLED
-define AP_BATTERY_SMBUS_SOLO_ENABLED (AP_BATTERY_SMBUS_ENABLED && BOARD_FLASH_SIZE > 1024)
+# undef AP_BATTERY_SMBUS_SOLO_ENABLED
+# define AP_BATTERY_SMBUS_SOLO_ENABLED (AP_BATTERY_SMBUS_ENABLED && BOARD_FLASH_SIZE > 1024)
 
 # produce this error if we are on a 1M board
-define BOARD_CHECK_F427_USE_1M "ERROR: 1M flash use fmuv2"
+# define BOARD_CHECK_F427_USE_1M "ERROR: 1M flash use fmuv2"
+# define BOARD_CHECK_F429_USE_1M "ERROR: 1M flash use fmuv2"
+
+# Sensor Check alias for validating board type
+# CHECK_MPU9250           spi_check_register("mpu9250", MPUREG_WHOAMI, MPU_WHOAMI_MPU9250)
+# CHECK_MPU9250_EXT       spi_check_register("mpu9250_ext", MPUREG_WHOAMI, MPU_WHOAMI_MPU9250)
+# CHECK_ICM20602_EXT      spi_check_register("icm20602_ext", MPUREG_WHOAMI, MPU_WHOAMI_ICM20602)
+# CHECK_LSM9DS0_EXT_G     spi_check_register("lsm9ds0_ext_g", LSMREG_WHOAMI, LSM_WHOAMI_L3GD20)
+# CHECK_LSM9DS0_EXT_AM    spi_check_register("lsm9ds0_ext_am", LSMREG_WHOAMI, LSM_WHOAMI_LSM303D)
+# CHECK_ICM20948_EXT      spi_check_register("icm20948_ext", INV2REG_WHOAMI, INV2_WHOAMI_ICM20948)
+# CHECK_MS5611            check_ms5611("ms5611")
+# CHECK_MS5611_EXT        check_ms5611("ms5611_ext")
+
+# Sensor Check Macros to be used for validating board type
+# CHECK_IMU0_PRESENT   $CHECK_MPU9250_EXT || $CHECK_ICM20602_EXT
+# CHECK_IMU1_PRESENT   ($CHECK_LSM9DS0_EXT_G && $CHECK_LSM9DS0_EXT_AM) || $CHECK_ICM20948_EXT
+# CHECK_IMU2_PRESENT   $CHECK_MPU9250
+# CHECK_BARO0_PRESENT  $CHECK_MS5611
+# CHECK_BARO1_PRESENT  $CHECK_MS5611_EXT
+
+# BOARD_VALIDATE $CHECK_IMU0_PRESENT $CHECK_IMU1_PRESENT $CHECK_IMU2_PRESENT $CHECK_BARO0_PRESENT $CHECK_BARO1_PRESENT
+
+
