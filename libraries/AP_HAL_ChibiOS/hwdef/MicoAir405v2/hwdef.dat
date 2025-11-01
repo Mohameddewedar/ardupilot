@@ -3,8 +3,8 @@
 # MCU class and specific type
 MCU STM32F4xx STM32F405xx
 
-# board ID for firmware load
-APJ_BOARD_ID 1150
+# board ID. See Tools/AP_Bootloader/board_types.txt
+APJ_BOARD_ID AP_HW_MicoAir405v2
 
 # crystal frequency
 OSCILLATOR_HZ 8000000
@@ -126,7 +126,7 @@ PB15 TIM12_CH2 TIM12 PWM(10) GPIO(59) NODMA
 # external compass types
 define ALLOW_ARM_NO_COMPASS
 define HAL_COMPASS_DEFAULT HAL_COMPASS_NONE
-define HAL_PROBE_EXTERNAL_I2C_COMPASSES
+define AP_COMPASS_PROBING_ENABLED 1
 define HAL_I2C_INTERNAL_MASK 0
 define HAL_COMPASS_AUTO_ROT_DEFAULT 2
 

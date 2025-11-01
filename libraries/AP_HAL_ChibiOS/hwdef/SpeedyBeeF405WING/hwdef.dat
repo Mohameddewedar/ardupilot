@@ -5,8 +5,8 @@
 # MCU class and specific type
 MCU STM32F4xx STM32F405xx
 
-# board ID for firmware load
-APJ_BOARD_ID 1106
+# board ID. See Tools/AP_Bootloader/board_types.txt
+APJ_BOARD_ID AP_HW_SpeedyBeeF405WING
 
 # crystal frequency
 OSCILLATOR_HZ 8000000
@@ -144,7 +144,7 @@ define AP_BARO_SPL06_ENABLED 1
 # no built-in compass, but probe the i2c bus for all possible
 # external compass types
 define ALLOW_ARM_NO_COMPASS
-define HAL_PROBE_EXTERNAL_I2C_COMPASSES
+define AP_COMPASS_PROBING_ENABLED 1
 define HAL_I2C_INTERNAL_MASK 0
 define HAL_COMPASS_AUTO_ROT_DEFAULT 2
 
@@ -174,12 +174,10 @@ include ../include/minimize_fpv_osd.inc
 undef AP_CAMERA_MOUNT_ENABLED
 undef HAL_MOUNT_ENABLED
 undef HAL_MOUNT_SERVO_ENABLED
-undef QAUTOTUNE_ENABLED
 
 define AP_CAMERA_MOUNT_ENABLED 1
 define HAL_MOUNT_ENABLED 1
 define AP_MOUNT_BACKEND_DEFAULT_ENABLED 0
 define HAL_MOUNT_SERVO_ENABLED 1
-define QAUTOTUNE_ENABLED 1
 
 define DEFAULT_NTF_LED_TYPES 257
