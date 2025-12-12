@@ -64,6 +64,7 @@ APJ_BOARD_ID 5656
 
 # crystal frequency
 OSCILLATOR_HZ 8000000
+define STM32_HSE_BYPASS
 
 # On some boards you will need to also set the various PLL values. See
 # the defaults in common/mcuconf.h, and use the define mechanism
@@ -135,13 +136,18 @@ I2C_ORDER I2C2 I2C1
 # 6) SERIAL5: extra UART (usually RTOS debug console)
 
 # order of UARTs (and USB)
-SERIAL_ORDER OTG1 USART2 USART3 UART4 UART8 UART7
+SERIAL_ORDER OTG1 UART4 UART7
 
 # If the board has an IOMCU connected via a UART then this defines the
 # UART to talk to that MCU. Leave it out for boards with no IOMCU.
 
 # UART for IOMCU
 # IOMCU_UART USART6
+
+# UART1 for ST-LINK Virtual COM Port (VCP)
+# UART1 for ST-LINK Virtual COM Port (VCP)
+# PA9 USART1_TX USART1
+# PA10 USART1_RX USART1
 
 # Now we start on the pin definitions. Every pin used by ArduPilot
 # needs to be in this file. The pins in this file can be defined in any order.
@@ -211,7 +217,7 @@ PA8 nVDD_5V_PERIPH_EN OUTPUT LOW
 
 # This is the pin that senses USB being connected. It is an input pin
 # setup as OPENDRAIN.
-PA9 VBUS INPUT OPENDRAIN
+# PA9 VBUS INPUT OPENDRAIN
 
 # This is a commented out pin for talking to the debug UART on the
 # IOMCU, not used yet, but left as a comment (with a '#' in front) for
@@ -219,8 +225,12 @@ PA9 VBUS INPUT OPENDRAIN
 # PA10 IO-debug-console
 
 # Now we define the pins that USB is connected on.
-PA11 USB_OTG_FS_DM OTG1
-PA12 USB_OTG_FS_DP OTG1
+# USB on Discovery F429 uses OTG2 (HS peripheral) on PB14/15
+PB14 USB_OTG_HS_DM OTG2
+PB15 USB_OTG_HS_DP OTG2
+
+# VBUS sensing is on PB13, not PA9
+PB13 VBUS INPUT
 
 # Define OTG Power Pin
 # PC4 PSO_OTG1_FS OUTPUT HIGH
@@ -259,9 +269,9 @@ PB10 I2C2_SCL I2C2
 PB11 I2C2_SDA I2C2
 
 # the 2nd SPI bus
-PB13 SPI2_SCK SPI2
-PB14 SPI2_MISO SPI2
-PB15 SPI2_MOSI SPI2
+# PB13 SPI2_SCK SPI2
+# PB14 SPI2_MISO SPI2
+# PB15 SPI2_MOSI SPI2
 
 # This input pin is used to detect that power is valid on USB.
 PC0 VBUS_nVALID INPUT PULLUP
@@ -387,38 +397,38 @@ PE8 UART7_TX UART7
 # of ArduPilot so users don't need to re-do their accel and compass
 # calibrations when moving to ChibiOS.
 
-SPIDEV ms5611         SPI1 DEVID3  BARO_CS      MODE3 20*MHZ 20*MHZ
-SPIDEV ms5611_ext     SPI4 DEVID2  BARO_EXT_CS  MODE3 20*MHZ 20*MHZ
-SPIDEV mpu6000        SPI1 DEVID4  MPU_CS       MODE3  2*MHZ  8*MHZ
-SPIDEV icm20608-am    SPI1 DEVID2  ACCEL_EXT_CS MODE3  4*MHZ  8*MHZ
-SPIDEV mpu9250        SPI1 DEVID4  MPU_CS       MODE3  4*MHZ  8*MHZ
-SPIDEV mpu9250_ext    SPI4 DEVID1  MPU_EXT_CS   MODE3  4*MHZ  8*MHZ
-SPIDEV icm20948       SPI1 DEVID4  MPU_CS       MODE3  4*MHZ  8*MHZ
-SPIDEV icm20948_ext   SPI4 DEVID1  MPU_EXT_CS   MODE3  4*MHZ  8*MHZ
-SPIDEV hmc5843        SPI1 DEVID5  MAG_CS       MODE3 11*MHZ 11*MHZ
-SPIDEV lsm9ds0_g      SPI1 DEVID1  GYRO_EXT_CS  MODE3 11*MHZ 11*MHZ 
-SPIDEV lsm9ds0_am     SPI1 DEVID2  ACCEL_EXT_CS MODE3 11*MHZ 11*MHZ 
-SPIDEV lsm9ds0_ext_g  SPI4 DEVID4  GYRO_EXT_CS  MODE3 11*MHZ 11*MHZ 
-SPIDEV lsm9ds0_ext_am SPI4 DEVID3  ACCEL_EXT_CS MODE3 11*MHZ 11*MHZ 
-SPIDEV icm20602_ext   SPI4 DEVID4  GYRO_EXT_CS  MODE3  4*MHZ  8*MHZ
-SPIDEV ramtron        SPI2 DEVID10 FRAM_CS      MODE3  8*MHZ  8*MHZ
-SPIDEV external0m0    SPI4 DEVID5  MPU_EXT_CS   MODE0  2*MHZ  2*MHZ
-SPIDEV external0m1    SPI4 DEVID5  MPU_EXT_CS   MODE1  2*MHZ  2*MHZ
-SPIDEV external0m2    SPI4 DEVID5  MPU_EXT_CS   MODE2  2*MHZ  2*MHZ
-SPIDEV external0m3    SPI4 DEVID5  MPU_EXT_CS   MODE3  2*MHZ  2*MHZ
-SPIDEV pixartPC15     SPI4 DEVID13 ACCEL_EXT_CS MODE3  2*MHZ  2*MHZ
+# SPIDEV ms5611         SPI1 DEVID3  BARO_CS      MODE3 20*MHZ 20*MHZ
+# SPIDEV ms5611_ext     SPI4 DEVID2  BARO_EXT_CS  MODE3 20*MHZ 20*MHZ
+# SPIDEV mpu6000        SPI1 DEVID4  MPU_CS       MODE3  2*MHZ  8*MHZ
+# SPIDEV icm20608-am    SPI1 DEVID2  ACCEL_EXT_CS MODE3  4*MHZ  8*MHZ
+# SPIDEV mpu9250        SPI1 DEVID4  MPU_CS       MODE3  4*MHZ  8*MHZ
+# SPIDEV mpu9250_ext    SPI4 DEVID1  MPU_EXT_CS   MODE3  4*MHZ  8*MHZ
+# SPIDEV icm20948       SPI1 DEVID4  MPU_CS       MODE3  4*MHZ  8*MHZ
+# SPIDEV icm20948_ext   SPI4 DEVID1  MPU_EXT_CS   MODE3  4*MHZ  8*MHZ
+# SPIDEV hmc5843        SPI1 DEVID5  MAG_CS       MODE3 11*MHZ 11*MHZ
+# SPIDEV lsm9ds0_g      SPI1 DEVID1  GYRO_EXT_CS  MODE3 11*MHZ 11*MHZ 
+# SPIDEV lsm9ds0_am     SPI1 DEVID2  ACCEL_EXT_CS MODE3 11*MHZ 11*MHZ 
+# SPIDEV lsm9ds0_ext_g  SPI4 DEVID4  GYRO_EXT_CS  MODE3 11*MHZ 11*MHZ 
+# SPIDEV lsm9ds0_ext_am SPI4 DEVID3  ACCEL_EXT_CS MODE3 11*MHZ 11*MHZ 
+# SPIDEV icm20602_ext   SPI4 DEVID4  GYRO_EXT_CS  MODE3  4*MHZ  8*MHZ
+# SPIDEV ramtron        SPI2 DEVID10 FRAM_CS      MODE3  8*MHZ  8*MHZ
+# SPIDEV external0m0    SPI4 DEVID5  MPU_EXT_CS   MODE0  2*MHZ  2*MHZ
+# SPIDEV external0m1    SPI4 DEVID5  MPU_EXT_CS   MODE1  2*MHZ  2*MHZ
+# SPIDEV external0m2    SPI4 DEVID5  MPU_EXT_CS   MODE2  2*MHZ  2*MHZ
+# SPIDEV external0m3    SPI4 DEVID5  MPU_EXT_CS   MODE3  2*MHZ  2*MHZ
+# SPIDEV pixartPC15     SPI4 DEVID13 ACCEL_EXT_CS MODE3  2*MHZ  2*MHZ
 
 # Now some commented out SPI device names which can be used by
 # developers to test that the clock calculations are right for a
 # bus. This is used in conjunction with the mavproxy devop module.
 
 # for SPI clock testing
-#SPIDEV clock500 SPI4 DEVID5  MPU_EXT_CS   MODE0  500*KHZ 500*KHZ # gives 329KHz
-#SPIDEV clock1   SPI4 DEVID5  MPU_EXT_CS   MODE0  1*MHZ 1*MHZ     # gives 657kHz
-#SPIDEV clock2   SPI4 DEVID5  MPU_EXT_CS   MODE0  2*MHZ 2*MHZ     # gives 1.3MHz
-#SPIDEV clock4   SPI4 DEVID5  MPU_EXT_CS   MODE0  4*MHZ 4*MHZ     # gives 2.6MHz
-#SPIDEV clock8   SPI4 DEVID5  MPU_EXT_CS   MODE0  8*MHZ 8*MHZ     # gives 5.5MHz
-#SPIDEV clock16  SPI4 DEVID5  MPU_EXT_CS   MODE0  16*MHZ 16*MHZ   # gives 10.6MHz
+# SPIDEV clock500 SPI4 DEVID5  MPU_EXT_CS   MODE0  500*KHZ 500*KHZ # gives 329KHz
+# SPIDEV clock1   SPI4 DEVID5  MPU_EXT_CS   MODE0  1*MHZ 1*MHZ     # gives 657kHz
+# SPIDEV clock2   SPI4 DEVID5  MPU_EXT_CS   MODE0  2*MHZ 2*MHZ     # gives 1.3MHz
+# SPIDEV clock4   SPI4 DEVID5  MPU_EXT_CS   MODE0  4*MHZ 4*MHZ     # gives 2.6MHz
+# SPIDEV clock8   SPI4 DEVID5  MPU_EXT_CS   MODE0  8*MHZ 8*MHZ     # gives 5.5MHz
+# SPIDEV clock16  SPI4 DEVID5  MPU_EXT_CS   MODE0  16*MHZ 16*MHZ   # gives 10.6MHz
 
 # This adds a C define which sets up the ArduPilot architecture
 # define. Any line starting with 'define' is copied literally as
