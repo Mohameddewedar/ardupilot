@@ -9,7 +9,7 @@ local MAX_ATTEMPTS = 30 -- Stop checking after 30 seconds to conserve flight con
 
 function update()
     if announced then
-        return nil
+        return
     end
 
     attempts = attempts + 1
@@ -19,7 +19,7 @@ function update()
         if attempts < MAX_ATTEMPTS then
             return update, 1000
         end
-        return nil
+        return
     end
 
     local batt_info = "Battery: N/A"
@@ -42,8 +42,8 @@ function update()
     gcs:send_text(6, string.format("MADpilot OEM online [%s]", batt_info))
     announced = true
 
-    -- Do not reschedule once successfully announced
-    return nil
+    -- Do not reschedule once successfully announced (returning 0 values exits cleanly)
+    return
 end
 
 return update()
