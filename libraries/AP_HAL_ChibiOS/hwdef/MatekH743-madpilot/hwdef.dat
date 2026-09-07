@@ -1,0 +1,5 @@
+include ../MatekH743/hwdef.dat
+
+USE_BOOTLOADER_FROM_BOARD MatekH743
+
+define AP_CUSTOM_FIRMWARE_STRING "MADpilot"

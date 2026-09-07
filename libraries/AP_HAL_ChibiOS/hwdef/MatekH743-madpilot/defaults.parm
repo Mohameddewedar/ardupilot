@@ -1,0 +1,57 @@
+# MADpilot foam-trainer fixed-wing fleet defaults
+# Tuned for Phase-0 foam-trainer test plane (Matek H743-Wing, 3S LiPo battery pack).
+# Automatically ROMFS-embedded into the firmware and applied on first boot.
+
+# --- Link-loss Failsafe ---
+# FS_GCS_ENABL: 1 = Enable GCS telemetry heartbeat failsafe on connection loss
+FS_GCS_ENABL 1
+# FS_LONG_ACTN: 1 = Return-To-Launch (RTL) upon long failsafe trigger
+FS_LONG_ACTN 1
+# FS_LONG_TIMEOUT: Seconds of link loss before RTL failsafe engages
+FS_LONG_TIMEOUT 5
+
+# --- Battery Failsafe (3S LiPo Fleet) ---
+# BATT_MONITOR: 4 = Enable analog voltage and current monitoring on primary sensor
+BATT_MONITOR 4
+# BATT_CAPACITY: 2200 mAh nominal pack capacity for foam-trainer flight battery
+BATT_CAPACITY 2200
+# BATT_LOW_VOLT: 10.5V (3.5V per cell) low battery threshold triggering RTL
+BATT_LOW_VOLT 10.5
+# BATT_CRT_VOLT: 10.0V (3.33V per cell) critical battery threshold
+BATT_CRT_VOLT 10.0
+# BATT_LOW_MAH: 440 mAh remaining capacity (20% reserve) triggering RTL
+BATT_LOW_MAH 440
+# BATT_CRT_MAH: 220 mAh remaining capacity (10% reserve) critical threshold
+BATT_CRT_MAH 220
+# BATT_FS_LOW_ACT: 1 = Return-To-Launch (RTL) when low battery limit is reached
+BATT_FS_LOW_ACT 1
+# BATT_FS_CRT_ACT: 1 = Return-To-Launch (RTL) when critical battery limit is reached
+BATT_FS_CRT_ACT 1
+# BATT_ARM_VOLT: 11.1V (3.7V per cell) minimum voltage required before arming is permitted
+BATT_ARM_VOLT 11.1
+
+# --- Scripting ---
+# SCR_ENABLE: 1 = Enable Lua scripting engine to run ROMFS-embedded OEM scripts
+SCR_ENABLE 1
+
+# --- Foam-trainer Flight Frame Basics & Trims ---
+# TRIM_THROTTLE: 45% cruise throttle percentage for level cruise flight
+TRIM_THROTTLE 45
+# PTCH_TRIM_DEG: 0.0 degrees level-pitch trim offset
+PTCH_TRIM_DEG 0
+# SERVO_AUTO_TRIM: 1 = Enable automatic servo trim in flight
+SERVO_AUTO_TRIM 1
+# ROLL_LIMIT_DEG: 35 degrees conservative maximum roll limit for novice flight stability
+ROLL_LIMIT_DEG 35
+# PTCH_LIM_MAX_DEG: 20 degrees maximum climb pitch limit to prevent stalls
+PTCH_LIM_MAX_DEG 20
+# PTCH_LIM_MIN_DEG: -15 degrees maximum descent pitch limit to prevent overspeed
+PTCH_LIM_MIN_DEG -15
+# AIRSPEED_CRUISE: 15 m/s target cruise airspeed
+AIRSPEED_CRUISE 15
+# AIRSPEED_MIN: 10 m/s minimum stall-safe airspeed
+AIRSPEED_MIN 10
+# AIRSPEED_MAX: 22 m/s maximum structural airspeed limit
+AIRSPEED_MAX 22
+# RTL_ALTITUDE: 50 meters above home altitude for safe obstacle clearance on RTL
+RTL_ALTITUDE 50
