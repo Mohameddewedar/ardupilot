@@ -1,6 +1,6 @@
 # GuidancePilotF429 expansion: sensor and storage requirements
 
-Research date: 2026-11-04. AI-assisted investigation for [GuidancePilotF429: establish sensor and storage electrical requirements](https://github.com/Mohameddewedar/ardupilot/issues/8), part of [GuidancePilotF429 external sensor and storage integration](https://github.com/Mohameddewedar/ardupilot/issues/6). Source review is pinned to `7a7939c2f533e22b88e0deca42c81d6590daa146`. Scope is STM32F429I-DISC1, ArduPlane, bench only. This document establishes constraints; it does not approve a connector pinout, power hookup or mounting rotation.
+Research date: 2026-11-04. AI-assisted investigation for [GuidancePilotF429: establish sensor and storage electrical requirements](https://github.com/Mohameddewedar/ardupilot/issues/8), part of [GuidancePilotF429: integrate external IMU, GPS and microSD for bench use](https://github.com/Mohameddewedar/ardupilot/issues/6). Source review is pinned to `7a7939c2f533e22b88e0deca42c81d6590daa146`. Scope is STM32F429I-DISC1, ArduPlane, bench only. This document establishes constraints; it does not approve a connector pinout, power hookup or mounting rotation.
 
 ## Findings
 
@@ -54,7 +54,7 @@ After carrier and board pin evidence is reconciled, the likely changes are a cho
 3. GPS complete metal-can marking and carrier markings; connector pin order; regulator/translator and backup battery circuitry; antenna model, active/passive type and bias supply. Confirm both UART directions are accessible.
 4. SD carrier pin labels and circuitry, especially whether DAT1/DAT2/DAT3/CMD are exposed, versus only SPI; regulator/translator markings; card make/model/capacity. State if the socket includes card detect; do not confuse its CD switch with the card's DAT3/CS signal.
 5. Intended mounting top/forward direction and physical chip axes; proposed cable lengths and an unpowered assembled-wiring photo before physical assembly and the power plan are confirmed.
-6. Intended supply source and USB connections, rail/current ratings and any regulator datasheets. Map power paths and ground before measuring unloaded and loaded rails after physical assembly and the power plan are confirmed. [GuidancePilotF429 external sensor and storage integration](https://github.com/Mohameddewedar/ardupilot/issues/6) records earlier approximately 2.86 V ST-LINK / 2.92 V estimated VDDA and intermittent native USB failures. Those readings do not establish capacity, regulator headroom, ripple or transient margin for the expansion. Do not infer permission to power the modules from nominal 3.3 V compatibility.
+6. Intended supply source and USB connections, rail/current ratings and any regulator datasheets. Map power paths and ground before measuring unloaded and loaded rails after physical assembly and the power plan are confirmed. [GuidancePilotF429: integrate external IMU, GPS and microSD for bench use](https://github.com/Mohameddewedar/ardupilot/issues/6) records earlier approximately 2.86 V ST-LINK / 2.92 V estimated VDDA and intermittent native USB failures. Those readings do not establish capacity, regulator headroom, ripple or transient margin for the expansion. Do not infer permission to power the modules from nominal 3.3 V compatibility.
 
 ## Validation and limits
 
