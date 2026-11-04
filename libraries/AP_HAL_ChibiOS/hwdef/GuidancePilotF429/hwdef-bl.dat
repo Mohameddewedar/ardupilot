@@ -1,0 +1,74 @@
+# hw definition file for processing by chibios_hwdef.py
+# for MTC Guidance department autopilot project
+
+# MCU class and specific type
+MCU STM32F4xx STM32F429xx
+
+# board ID for firmware load
+APJ_BOARD_ID 5656
+
+# crystal frequency
+OSCILLATOR_HZ 8000000
+
+# Enable HSE Bypass for ST-Link clock
+define STM32_HSE_BYPASS
+
+# Force USB usage for OTG2
+define HAL_USE_USB TRUE
+define HAL_USE_SERIAL_USB TRUE
+define STM32_OTG2_IS_OTG1 TRUE
+
+# ChibiOS system timer
+STM32_ST_USE_TIMER 5
+
+# flash size
+FLASH_SIZE_KB 2048
+
+# location of application code
+FLASH_BOOTLOADER_LOAD_KB 16
+
+# bootloader loads at start of flash
+FLASH_RESERVE_START_KB 0
+
+define HAL_USE_EMPTY_STORAGE 1
+define HAL_STORAGE_SIZE 16384
+
+# USB setup
+USB_VENDOR 0x31A2 # ONLY FOR USE BY M.A.Dewedar! NOBODY ELSE
+USB_PRODUCT 0x1001
+# USB_STRING_MANUFACTURER "GuidancePilot"
+USB_STRING_MANUFACTURER "MTC/GuidancePilot"
+
+# baudrate to run bootloader at on uarts
+# define BOOTLOADER_BAUDRATE 115200
+define BOOTLOADER_BAUDRATE 57600
+
+# uarts and USB to run bootloader protocol on
+SERIAL_ORDER OTG1 USART1
+
+# this is the pin that senses USB being connected. It is an input pin
+# setup as OPENDRAIN
+# PA9 VBUS INPUT OPENDRAIN
+
+# now we define the pins that USB is connected on
+PB14 USB_OTG_HS_DM OTG2
+PB15 USB_OTG_HS_DP OTG2
+PB13 VBUS INPUT
+# Define OTG Power Pin HIGH to disable VBUS switch (Active Low)
+PC4 VBUS_SW OUTPUT HIGH
+
+# these are the pins for SWD debugging with a STlinkv2 or black-magic probe
+PA13 SYS_JTMS-SWDIO SWD
+PA14 SYS_JTCK-SWCLK SWD
+
+# USART1 for debugging/bootloading via ST-LINKPA9  USART1_TX USART1
+PA9  USART1_TX USART1
+PA10 USART1_RX USART1
+
+# define a LED
+PG13 LED_BOOTLOADER OUTPUT
+define HAL_LED_ON 1
+
+# disable peripheral and sensor power in the bootloader
+# PA8 nVDD_5V_PERIPH_EN OUTPUT HIGH
+# PE3 VDD_3V3_SENSORS_EN OUTPUT LOW
