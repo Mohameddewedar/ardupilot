@@ -49,3 +49,15 @@ claimed by this evidence upload.
 The user provided the photos and authorized publication to the related
 issue. File preservation, visual captions, manifest preparation and upload
 were AI-assisted.
+
+## Current HW-125 bench wiring snapshot
+
+The [wiring diagram](guidance-f429-hw125-wiring.svg) is a review snapshot of
+`libraries/AP_HAL_ChibiOS/hwdef/GuidancePilotF429/expansion-wiring.svg` from
+the updated local working tree on 2026-11-05. It assigns all 21 module
+contacts, including four intentional NC contacts. Recommended external
+inputs are 3.3 V for IMU/GPS and 5 V for HW-125 VCC; actual carrier rails
+and loaded operation remain unverified. This is not a compiled or tested
+hardware configuration. The board-source SVG remains the editable source.
+
+SHA-256: `93518d782a7b5585f498cbdf047c3a4aa148906c0ae97cee1c8c58054f70f570`.
