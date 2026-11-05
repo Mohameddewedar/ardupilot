@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1130" viewBox="0 0 1500 1130" role="img" aria-labelledby="title desc">
+<title id="title">GuidancePilotF429 expansion signal schematic</title>
+<desc id="desc">Net-labelled Discovery P1/P2, separate SPI4 IMU and SPI5 SD, and GPS connections. Matching net names are connected. IMU and GPS VCC are unassigned; SD external 3.3 volt supply is conditional.</desc>
+<rect width="1500" height="1130" fill="white"/>
+<text x="30" y="38" font-family="DejaVu Sans, sans-serif" font-size="27" font-weight="bold" fill="#17243b">GuidancePilotF429 • expansion signal schematic</text>
+<text x="30" y="65" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#17243b">Bench only • matching signal net names connect; unused and HOLD contacts are open • numbers are positional aids</text>
+<text x="30" y="90" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="bold" fill="#b42318">IMU and GPS VCC: HOLD / UNASSIGNED. SD power is conditional. No powered validation.</text>
+<rect x="25" y="110" width="450" height="445" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="41" y="139" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">Discovery MB1075 • P1 / P2</text>
+<text x="41" y="163" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">Use PCB pin-1 marks; P1/P2 are expansion headers</text>
+<text x="41" y="185" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-15 PE2</text>
+<line x1="240" y1="179" x2="275" y2="179" stroke="#185b80" stroke-width="3" />
+<text x="285" y="185" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_SCK</text>
+<text x="41" y="214" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-11 PE6</text>
+<line x1="240" y1="208" x2="275" y2="208" stroke="#185b80" stroke-width="3" />
+<text x="285" y="214" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_MOSI</text>
+<text x="41" y="243" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-14 PE5</text>
+<line x1="240" y1="237" x2="275" y2="237" stroke="#185b80" stroke-width="3" />
+<text x="285" y="243" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_MISO</text>
+<text x="41" y="272" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-16 PE3</text>
+<line x1="240" y1="266" x2="275" y2="266" stroke="#185b80" stroke-width="3" />
+<text x="285" y="272" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_CS</text>
+<text x="41" y="301" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P2-6 PF7</text>
+<line x1="240" y1="295" x2="275" y2="295" stroke="#185b80" stroke-width="3" />
+<text x="285" y="301" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_SCK</text>
+<text x="41" y="330" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P2-8 PF9</text>
+<line x1="240" y1="324" x2="275" y2="324" stroke="#185b80" stroke-width="3" />
+<text x="285" y="330" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_MOSI</text>
+<text x="41" y="359" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P2-5 PF8</text>
+<line x1="240" y1="353" x2="275" y2="353" stroke="#185b80" stroke-width="3" />
+<text x="285" y="359" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_MISO</text>
+<text x="41" y="388" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-13 PE4</text>
+<line x1="240" y1="382" x2="275" y2="382" stroke="#185b80" stroke-width="3" />
+<text x="285" y="388" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_CS</text>
+<text x="41" y="417" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-43 PC12 TX</text>
+<line x1="240" y1="411" x2="275" y2="411" stroke="#185b80" stroke-width="3" />
+<text x="285" y="417" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GPS_RX  →</text>
+<text x="41" y="446" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-40 PD2 RX</text>
+<line x1="240" y1="440" x2="275" y2="440" stroke="#185b80" stroke-width="3" />
+<text x="285" y="446" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GPS_TX  ←</text>
+<text x="41" y="475" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">P1-63 or 64</text>
+<line x1="240" y1="469" x2="275" y2="469" stroke="#185b80" stroke-width="3" />
+<text x="285" y="475" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GND</text>
+<text x="42" y="530" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">SB22–SB25 stock OFF; SB25 isolates PD2 / LCD IM0.</text>
+<rect x="505" y="110" width="465" height="445" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="521" y="139" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">IMU • MPU9250/6500 carrier</text>
+<text x="521" y="163" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">Component face up; header LEFT; top → bottom</text>
+<text x="521" y="190" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">1 VCC</text>
+<line x1="720" y1="184" x2="755" y2="184" stroke="#b42318" stroke-width="3" stroke-dasharray="7 5"/>
+<text x="765" y="190" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#b42318">HOLD / UNASSIGNED</text>
+<text x="521" y="224" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">2 GND</text>
+<line x1="720" y1="218" x2="755" y2="218" stroke="#185b80" stroke-width="3" />
+<text x="765" y="224" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GND</text>
+<text x="521" y="258" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">3 SCL / SCLK</text>
+<line x1="720" y1="252" x2="755" y2="252" stroke="#185b80" stroke-width="3" />
+<text x="765" y="258" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_SCK</text>
+<text x="521" y="292" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">4 SDA / SDI</text>
+<line x1="720" y1="286" x2="755" y2="286" stroke="#185b80" stroke-width="3" />
+<text x="765" y="292" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_MOSI</text>
+<text x="521" y="326" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">5 EDA</text>
+<line x1="720" y1="320" x2="755" y2="320" stroke="#185b80" stroke-width="3" />
+<text x="765" y="326" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="521" y="360" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">6 ECL</text>
+<line x1="720" y1="354" x2="755" y2="354" stroke="#185b80" stroke-width="3" />
+<text x="765" y="360" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="521" y="394" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">7 AD0 / SDO</text>
+<line x1="720" y1="388" x2="755" y2="388" stroke="#185b80" stroke-width="3" />
+<text x="765" y="394" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_MISO</text>
+<text x="521" y="428" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">8 INT</text>
+<line x1="720" y1="422" x2="755" y2="422" stroke="#185b80" stroke-width="3" />
+<text x="765" y="428" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="521" y="462" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">9 NCS</text>
+<line x1="720" y1="456" x2="755" y2="456" stroke="#185b80" stroke-width="3" />
+<text x="765" y="462" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">IMU_CS</text>
+<text x="521" y="496" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">10 FSYNC</text>
+<line x1="720" y1="490" x2="755" y2="490" stroke="#185b80" stroke-width="3" />
+<text x="765" y="496" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GND*</text>
+<text x="522" y="536" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">* Only after unpowered check: carrier must not drive FSYNC.</text>
+<rect x="1000" y="110" width="475" height="445" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="1016" y="139" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">Micro SD Board V1.02</text>
+<text x="1016" y="163" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">Socket face up; header LEFT; top → bottom</text>
+<text x="1016" y="190" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">1 3.3V</text>
+<line x1="1215" y1="184" x2="1250" y2="184" stroke="#a24a05" stroke-width="3" />
+<text x="1260" y="190" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#a24a05">EXT_3V3*</text>
+<text x="1016" y="224" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">2 3.3V</text>
+<line x1="1215" y1="218" x2="1250" y2="218" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="224" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused externally</text>
+<text x="1016" y="258" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">3 GND</text>
+<line x1="1215" y1="252" x2="1250" y2="252" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="258" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GND</text>
+<text x="1016" y="292" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">4 NC / D2</text>
+<line x1="1215" y1="286" x2="1250" y2="286" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="292" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="1016" y="326" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">5 CS / D3</text>
+<line x1="1215" y1="320" x2="1250" y2="320" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="326" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_CS</text>
+<text x="1016" y="360" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">6 MOSI / CMD</text>
+<line x1="1215" y1="354" x2="1250" y2="354" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="360" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_MOSI</text>
+<text x="1016" y="394" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">7 CLK / CLK</text>
+<line x1="1215" y1="388" x2="1250" y2="388" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="394" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_SCK</text>
+<text x="1016" y="428" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">8 MISO / D0</text>
+<line x1="1215" y1="422" x2="1250" y2="422" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="428" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">SD_MISO</text>
+<text x="1016" y="462" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">9 NC / D1</text>
+<line x1="1215" y1="456" x2="1250" y2="456" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="462" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="1016" y="496" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">10 CD</text>
+<line x1="1215" y1="490" x2="1250" y2="490" stroke="#185b80" stroke-width="3" />
+<text x="1260" y="496" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused switch</text>
+<text x="1017" y="536" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">* Candidate only; check power path and write peak rating.</text>
+<rect x="25" y="585" width="450" height="245" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="41" y="614" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">GPS MINI V1.0 • NEO-7N</text>
+<text x="41" y="638" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">Battery/component face up; header BOTTOM</text>
+<text x="42" y="657" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="normal" fill="#17243b">Contacts left → right:</text>
+<text x="41" y="689" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">1 PPS</text>
+<line x1="240" y1="683" x2="275" y2="683" stroke="#185b80" stroke-width="3" />
+<text x="285" y="689" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">unused</text>
+<text x="41" y="717" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">2 RXD</text>
+<line x1="240" y1="711" x2="275" y2="711" stroke="#185b80" stroke-width="3" />
+<text x="285" y="717" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GPS_RX  ←</text>
+<text x="41" y="745" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">3 TXD</text>
+<line x1="240" y1="739" x2="275" y2="739" stroke="#185b80" stroke-width="3" />
+<text x="285" y="745" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GPS_TX  →</text>
+<text x="41" y="773" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">4 GND</text>
+<line x1="240" y1="767" x2="275" y2="767" stroke="#185b80" stroke-width="3" />
+<text x="285" y="773" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#185b80">GND</text>
+<text x="41" y="801" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">5 VCC</text>
+<line x1="240" y1="795" x2="275" y2="795" stroke="#b42318" stroke-width="3" stroke-dasharray="7 5"/>
+<text x="285" y="801" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#b42318">HOLD / UNASSIGNED</text>
+<rect x="505" y="585" width="970" height="245" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="521" y="614" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">Separate SPI buses and supply</text>
+<text x="521" y="638" font-family="DejaVu Sans, sans-serif" font-size="14" font-weight="normal" fill="#17243b">Matching signal net names connect; SPI4 and SPI5 clock/data nets remain separate.</text>
+<text x="525" y="667" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="bold" fill="#185b80">SPI4 → IMU 3 / 4 / 7</text>
+<text x="525" y="695" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#17243b">P1-15 / 11 / 14</text>
+<text x="525" y="731" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="bold" fill="#185b80">SPI5 → SD 7 / 6 / 8</text>
+<text x="525" y="759" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#17243b">P2-6 / 8 / 5</text>
+<text x="525" y="798" font-family="DejaVu Sans, sans-serif" font-size="15" font-weight="normal" fill="#17243b">SPI5: onboard gyro and LCD connected; no active gyro backend.</text>
+<text x="1010" y="665" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#17243b">GND: P1, all carrier grounds and</text>
+<text x="1010" y="687" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#17243b">external supply return share one net.</text>
+<text x="1010" y="724" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="bold" fill="#a24a05">EXT_3V3 → SD 1 only (candidate).</text>
+<text x="1010" y="750" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#b42318">Never connect EXT_3V3 to P2-1/2</text>
+<text x="1010" y="772" font-family="DejaVu Sans, sans-serif" font-size="16" font-weight="normal" fill="#b42318">or parallel the board regulator.</text>
+<rect x="25" y="845" width="1450" height="250" rx="6" fill="#f6f9fc" stroke="#a7b7c8" stroke-width="2"/>
+<text x="45" y="878" font-family="DejaVu Sans, sans-serif" font-size="21" font-weight="bold" fill="#17243b">Assembly conditions</text>
+<text x="45" y="912" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">Keep IMU 1 and GPS 5 VCC disconnected until regulator, power path and compatible rail are established.</text>
+<text x="45" y="944" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">Verify CS inactive high at reset and deselected MISO release; after GPIO setup verify PC1 and PC2 high.</text>
+<text x="45" y="976" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">AD0 is SDO in SPI mode: do not strap it. FSYNC is grounded only after the unpowered check.</text>
+<text x="45" y="1008" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">Discovery stays on its existing USB supply. External supply return joins GND; do not parallel supplies.</text>
+<text x="45" y="1040" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">Inspect existing pulls and SD contact 2 continuity. CD is not CS. INT and PPS are unused.</text>
+<text x="45" y="1072" font-family="DejaVu Sans, sans-serif" font-size="17" font-weight="normal" fill="#17243b">UART direction: P1-43 TX → GPS 2 RXD; GPS 3 TXD → P1-40 RX. See guide for future checks.</text>
+</svg>

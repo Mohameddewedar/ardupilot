@@ -7,16 +7,12 @@ requires a separate clock configuration.
 
 ## Bench scope
 
-The stock board has a gyro, but no accelerometer, barometer or compass.
-L3GD20 is fitted on earlier revisions; revision E uses I3G4250D. The existing
-LSM9DS0 inertial driver requires an accelerometer as well as a gyro, so this
-configuration deliberately declares no complete IMU. It does not generate
-substitute sensor data or bypass the inertial startup checks.
-
-ArduPlane is expected to enter its MAVLink-accessible configuration-error
-loop with `INS: unable to initialise driver`. This is a transport and storage
-bring-up configuration. Normal ArduPlane initialization and flight operation
-require additional supported sensors and a reviewed wiring definition.
+The stock board has a gyro but no accelerometer, barometer or compass. The
+expansion definition adds an external Invensense IMU, GPS UART and SPI microSD;
+their actual carrier power and operation remain unverified. See the
+[expansion wiring guide](expansion-wiring.md) and [signal schematic](expansion-wiring.svg).
+No barometer is supplied by these modules. Preserve configuration errors and
+arming checks; normal estimator operation and flight readiness are not established.
 There are no PWM outputs configured. The LCD and external SDRAM are unused.
 
 ## Connections
@@ -25,8 +21,11 @@ There are no PWM outputs configured. The LCD and external SDRAM are unused.
 | --- | --- |
 | SERIAL0 | CN6 micro-AB USB, PB14/PB15, OTG_HS internal full-speed PHY |
 | SERIAL1 | USART1 PA9/PA10, connected to the CN1 ST-LINK VCP on stock DISC1 |
+| SERIAL2 | UART5 PC12/PD2, external GPS (SB25 OFF) |
+| IMU SPI | SPI4 PE2/PE5/PE6, IMU CS PE3 |
+| SD SPI | SPI5 PF7/PF8/PF9, SD CS PE4 |
 | SWD | Onboard ST-LINK, PA13/PA14 |
-| Gyro SPI | SPI5 PF7/PF8/PF9, chip select PC1 |
+| Onboard gyro SPI | SPI5 PF7/PF8/PF9, chip select PC1; no active sampling backend declared |
 | LCD chip select | PC2 held high to deselect the LCD on shared SPI5 |
 | LEDs | PG13 green, PG14 red, active high |
 
@@ -59,10 +58,10 @@ entries are AF12 for USB and AF0 for SWD. Labels beginning `USB_OTG_` or
 silently leave these pins as inputs. Check the generated pin modes as well
 as whether compilation succeeds.
 
-## Build and validation
+## Future build and validation
 
-From the repository root, with the ARM toolchain and Python dependencies
-available:
+After human assembly confirmation, from the repository root, with the ARM
+toolchain and Python dependencies available:
 
 ```sh
 python3 Tools/scripts/build_bootloaders.py GuidancePilotF429
@@ -76,10 +75,14 @@ before programming. The generated `arduplane_with_bl.hex` includes both
 images; a raw `arduplane.bin` starts at 0x08010000.
 
 Bench checks should include programming/readback verification, bootloader
-board identity, MAVLink version and disarmed status, the expected INS error,
-SPI gyro WHOAMI, parameter persistence across resets, repeated startup, and
-a timed observation of diagnostic-loop stability. A successful diagnostic
+board identity, MAVLink version and disarmed status, truthful sensor errors,
+IMU WHOAMI, parameter persistence across resets, repeated startup, and
+a timed observation of diagnostic-loop stability, PC1/PC2 inactive-high states
+after GPIO setup, and IMU FIFO errors under SD logging load. A successful diagnostic
 check does not establish normal vehicle initialization or sensor health.
 
 Hardware references and driver constraints are recorded in the
 [AI-assisted Discovery research note](https://github.com/Mohameddewedar/ardupilot/blob/research/guidance-f429-discovery/docs/research/guidance-f429-discovery.md).
+
+This documentation update was AI-assisted. No build, upload or powered test was
+performed as part of this documentation work.

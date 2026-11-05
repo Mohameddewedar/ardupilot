@@ -1,4 +1,5 @@
-# STM32F429I-DISC1 bootloader; keep clock/USB aligned with hwdef.dat.
+# User-confirmed hardware: STM32F429I-DISC1 (MB1075), stock Discovery board.
+# Keep bootloader clock/USB aligned with hwdef.dat.
 MCU STM32F4xx STM32F429xx
 APJ_BOARD_ID 5656
 OSCILLATOR_HZ 8000000
