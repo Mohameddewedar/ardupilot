@@ -1,6 +1,7 @@
 # GuidancePilotF429 hardware photo evidence
 
-The user supplied these five original JPEG files on 2026-11-04 for
+The user supplied five original JPEG files on 2026-11-04 and two replacement
+reader photographs on 2026-11-05 for
 [GuidancePilotF429: identify breakout variants and mounting orientation](https://github.com/Mohameddewedar/ardupilot/issues/9),
 under the parent map
 [GuidancePilotF429: integrate external IMU, GPS and microSD for bench use](https://github.com/Mohameddewedar/ardupilot/issues/6).
@@ -13,16 +14,22 @@ values below identify the uploaded originals; sizes are in bytes.
 
 | Original file | View | Size | SHA-256 |
 | --- | --- | ---: | --- |
-| [IMG_20261104_142304.jpg](IMG_20261104_142304.jpg) | microSD carrier, socket side | 6248149 | `eb817a0ef01fcdb2de073aeed68b838ff87523cdac4cb1cc397983ba1bec978e` |
+| [IMG_20261104_142304.jpg](IMG_20261104_142304.jpg) | retired Micro SD Board V1.02, socket side | 6248149 | `eb817a0ef01fcdb2de073aeed68b838ff87523cdac4cb1cc397983ba1bec978e` |
 | [IMG_20261104_142427.jpg](IMG_20261104_142427.jpg) | IMU carrier, component side | 6048322 | `e51305cac6fd58d0cd88dd95bc7bb560ab2d23a0aa399d9abe6b6049e56c9028` |
 | [IMG_20261104_142456.jpg](IMG_20261104_142456.jpg) | IMU carrier, reverse side | 6183375 | `5d902b7854e910bbc5016f03d309ddbaff243a4d2e75b849a4b4f9a83cb42af2` |
 | [IMG_20261104_142539.jpg](IMG_20261104_142539.jpg) | GPS carrier, receiver-module side | 5526286 | `73812c0d3a6e98a719d9f48475495104b67b1ec846188297aa5fa456963d1cef` |
 | [IMG_20261104_142603.jpg](IMG_20261104_142603.jpg) | GPS carrier, reverse/component side | 6271636 | `53445db8b51d58a338fef972bbaf4f876d9c5d4f5af55bd8ddad6843df73d140` |
+| [1793874191660.jpg](1793874191660.jpg) | current HW-125 reader, socket/component side | 1047226 | `aec921d63db68fd4378ed336252c0bdf416c30b0d0cec96e48b6f6db06032705` |
+| [1793874191605.jpg](1793874191605.jpg) | current HW-125 reader, labelled back | 965108 | `09de66679744d97e2db607be86f7979c7e8a9113ff51bc70cb6c48e2901324ff` |
 
 Visible photo evidence:
 
-- The microSD carrier shows `Micro SD Board V1.02`, separate SPI/SDIO
-  signal labels and `3.3V` supply labels. Only its socket side is supplied.
+- The current reader is marked `HW-125`. Its back labels, with header left,
+  read top to bottom `CS SCK MOSI MISO VCC GND`. The component side shows
+  a regulator marked `1117` and a buffer marked `74LVC125`. The exact
+  regulator variant and hidden enable routing remain unverified.
+- The old `Micro SD Board V1.02` is retired. Its single socket-side photo
+  remains here as historical evidence and must not be used for current wiring.
 - The IMU component side shows `MPU-9250/6500` and an axis symbol. Its
   reverse side shows both `GY-6500` and `GY-9250`, with interface labels
   including `SCL/SCLK`, `SDA/SDI`, `AD0/SDO` and `NCS`.
