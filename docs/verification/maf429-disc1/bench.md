@@ -1,7 +1,9 @@
-# Connected STM32 bench observations
+# Initial connected STM32 baseline (before flashing)
 
-Date: 2026-11-06. AI-assisted execution. The firmware observed on hardware was
-the **installed GuidancePilotF429**, never the archived MAF429 firmware.
+Date: 2026-11-06. AI-assisted execution. This is the retained initial baseline;
+the firmware observed in this phase was the **installed GuidancePilotF429**.
+The user's later flash request and confirmation that external modules were
+disconnected led to the separate [original-image flash test](flash.md).
 All raw filenames below are relative to ignored
 `.local/guidance-f429/maf429-verification/`.
 
@@ -117,7 +119,7 @@ Rerunning overwrites the script's standard output files; preserve them in a
 new evidence directory first. The script defaults to a full flash readback
 when `--skip-flash` is omitted.
 
-## Why the archive was not flashed
+## Why the archive was not flashed in this initial phase
 
 The archive would drive existing PE5 IMU-MISO wiring as a low relay output,
 use PE2 as chip select instead of the current SPI4 clock, and hold the current
@@ -127,7 +129,7 @@ assembly would not be a valid test of the hypothetical original assembly.
 The source/build evidence already establishes those mismatches.
 
 No corrected firmware was substituted and then called an original-hwdef test.
-Original-image USB enumeration, startup, sensor probing and parameter behavior
-remain unmeasured. The [compatibility report](compatibility.md) explains what
-source inspection establishes without that test. No arming, outputs, physical
-rewiring, SD writes, calibration, flight or cold power-cycle testing occurred.
+Original-image USB enumeration and startup were unmeasured in this initial
+phase; the [follow-up test](flash.md) supplies the later results. The [compatibility report](compatibility.md) explains what
+source inspection establishes without that test. No arming, commanded outputs, physical rewiring, SD writes, calibration,
+flight or cold power-cycle testing occurred in this initial phase.

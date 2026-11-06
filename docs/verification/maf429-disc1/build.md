@@ -90,9 +90,9 @@ The app log includes `No APP_DESCRIPTOR found` but completes successfully.
 | `arduplane_with_bl.hex` | 3,643,716 | `b33779875a7e9de93887b3020e0fee237a457ccb588e4cc0ae1bb5022110df51` |
 
 These identify this run, not an assertion of reproducible binary hashes across
-commits or toolchains. No original MAF429 image was uploaded or run on the
-connected board. [Bench evidence](bench.md) is explicitly for its installed
-GuidancePilotF429 firmware.
+commits or toolchains. The later [flash test](flash.md) programmed these exact
+original images and recorded their runtime behavior. The initial
+[baseline evidence](bench.md) concerns the previously installed GuidancePilotF429.
 
 ## Retained evidence and test scope
 

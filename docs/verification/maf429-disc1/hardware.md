@@ -7,6 +7,11 @@ flashed, or measured by this research worker. This is a snapshot of research com
 retained here to keep the verification evidence together.
 The separate execution branch is `verification/maf429-disc1`.
 
+The research below predates the [physical flash test](flash.md), which now
+confirms original-image boot and native USB followed by a barometer
+configuration error. Its statements about unmeasured hardware describe the
+research phase, not the subsequent execution record.
+
 ## Finding
 
 **The archive could plausibly have booted and exposed USB or USART1, but that

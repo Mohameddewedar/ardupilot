@@ -2,11 +2,12 @@
 
 Date: 2026-11-06. AI-assisted investigation and documentation.
 
-The original MAF429 definitions **build successfully** on this repository
-revision. Their clock, memory and USB choices make limited operation on an
-STM32F429I-DISC1 plausible. This investigation does **not** establish that the
-original firmware boots on hardware, and the definitions do not describe the
-connected GuidancePilotF429 expansion correctly.
+The original MAF429 definitions **build, flash and boot on STM32F429I-DISC1**.
+The unchanged application communicates over native USB as MAF429, then enters
+`Config Error: Baro: unable to initialise driver` on the bare board. This proves
+limited boot/communications, not successful vehicle initialization or sensor
+operation. The definitions do not describe the GuidancePilotF429 expansion
+correctly. The user disconnected that expansion before the flash test.
 
 ## Isolation
 
@@ -22,7 +23,7 @@ separate; Git does not prohibit a human from deliberately merging them.
 The imported files are in
 [`libraries/AP_HAL_ChibiOS/hwdef/MAF429/`](../../../libraries/AP_HAL_ChibiOS/hwdef/MAF429/).
 They remain byte-identical to the ZIP. No corrected hwdef, shared firmware
-change, parameter change, or submodule change was introduced.
+change, parameter-set command, or submodule change was introduced.
 
 ## What was established
 
@@ -30,27 +31,28 @@ change, parameter change, or submodule change was introduced.
 | --- | --- |
 | Does the original bootloader build? | Yes; 15,756 bytes, 628 bytes spare in its 16 KiB region. |
 | Does the original ArduPlane application build? | Yes; Waf reports 1,308,464 flash bytes used. Raw BIN is 1,308,476 bytes. |
-| Does selecting F427 categorically prevent F429 operation? | No such conclusion follows. The profiles have the same RAM map, 168 MHz target and alternate functions used here. Runtime was not tested. |
-| Is USB fundamentally on the wrong pins? | No: PB14/PB15 and the HS controller's internal FS PHY are appropriate. Enumeration of the original image remains untested. |
+| Does selecting F427 categorically prevent F429 operation? | No. The original F427-profile image boots on this F429 and sends MAVLink over USB. This does not validate all peripherals. |
+| Is USB fundamentally on the wrong pins? | No. Native USB enumerated as MAF429 and carried application MAVLink. |
 | Does it support the currently wired expansion? | No. It expects ICM20948/BMP388 on SPI1; the retained wiring uses MPU9250 on SPI4, GPS on UART5 and SD on SPI5. |
 | Are all declared serial ports exposed? | No. The last `SERIAL_ORDER` leaves only USB and USART1. |
 | Does its parameter storage persist writes? | No. `HAL_USE_EMPTY_STORAGE` selects a backend that returns zeros and discards writes. |
-| Was original MAF429 firmware flashed? | No. A build does not resolve its pin and sensor mismatches. |
-| Was the connected board examined? | Yes: disarmed telemetry, 906 parameters, UART diagnostics and full 2 MiB flash readback from the installed GuidancePilotF429 image. SWD identification failed. |
+| Was original MAF429 firmware flashed? | Yes, after the user disconnected the external modules. All 1,324,860 bytes of the combined bootloader/application image matched SWD readback. |
+| Was the connected board examined? | Yes: initial GuidancePilotF429 baseline, then MAF429 native USB, 876 parameters and 46 disarmed heartbeats. Native ST-Link DAP succeeded where the legacy driver had failed. |
+| Was GuidancePilotF429 restored? | Yes. All 2 MiB matched the fresh backup before execution. After reassembly/reset, both USB links returned 906 parameters and disarmed heartbeats; final IMU IDs matched the baseline. Existing pre-arm errors remain. |
 
-“Worked” therefore needs qualification: compiling, showing an LED, possibly
-enumerating USB or starting a diagnostic loop would not establish functional
-sensors, persistent parameters, usable RC/GPS, safe outputs or a working
-autopilot. There is no evidence here proving that this archive was previously
-flashed successfully, or identifying the historical firmware revision on
-which it might have been used.
+“Worked” therefore needs qualification: booting and communicating in a
+configuration-error loop does not establish functional sensors, persistent
+parameters, usable RC/GPS, safe outputs or a working autopilot. This dated test
+proves present execution of the recorded images; it does not establish when or
+whether the archive worked historically, or under which older firmware revision.
 
 ## Reports
 
 - [Build commands, outcomes and hashes](build.md)
 - [Generated configuration and software compatibility](compatibility.md)
 - [Official hardware documentation research](hardware.md)
-- [Connected-board observations and limitations](bench.md)
+- [Initial connected-board observations and limitations](bench.md)
+- [Original-image flash, runtime results and restoration](flash.md)
 
 The tracker map is
 [MAF429: verify archived hwdef on STM32F429I-DISC1](https://github.com/Mohameddewedar/ardupilot/issues/14).

@@ -15,8 +15,10 @@ and SWD AF0. ChibiOS also groups the F427/F429 together for many peripheral
 capabilities in `modules/ChibiOS/os/hal/ports/STM32/STM32F4xx/stm32_registry.h`.
 
 These facts explain why selecting F427 need not immediately break this subset
-of F429 peripherals. They do not prove equivalent initialization or all
-peripheral behavior. A corrected board definition should name its actual MCU.
+of F429 peripherals. The later [flash test](flash.md) demonstrates boot and
+native USB communications on the actual F429. That result does not prove
+equivalent initialization or all peripheral behavior. A corrected board
+definition should name its actual MCU.
 The [hardware research](hardware.md) covers physical board compatibility.
 
 ## Confirmed findings
@@ -59,8 +61,9 @@ PB13 VBUS sensing and PC4 power-switch control are omitted from the archive.
 The generated PC4 is INPUT/FLOATING, not OUTPUT LOW or INPUT/PULLDOWN. The ST
 schematic's external pull-up on the active-low switch enable matters; omission
 alone does not prove that the board drives host VBUS. See [hardware.md](hardware.md)
-for the circuit evidence. Actual switch level and original-image USB
-enumeration were not measured.
+for the circuit evidence. The switch level was not measured. The later
+[flash test](flash.md) demonstrates original-image USB enumeration and
+application communications.
 
 ## Separate disposition of possible corrections
 
@@ -71,7 +74,8 @@ one deliberate safety input, preserved SWD, compatible sensor probes, and a
 pin allocation that accounts for attached LCD/SDRAM and existing external
 wiring. USB control and timer ownership also need explicit review.
 
-That would be a different definition, whose successful boot would not validate
-the original archive. The existing GuidancePilotF429 implementation is retained
+That would be a different definition, whose behavior would not qualify the
+original archive beyond the original-image results already measured. The
+existing GuidancePilotF429 implementation is retained
 as the development line; creating or qualifying a replacement is beyond this
 verification effort.
