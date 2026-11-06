@@ -1,12 +1,16 @@
 # GuidancePilotF429 expansion wiring: bench only
 
-This is a signal wiring plan for the STM32F429I-DISC1 MB1075, the photographed
-IMU carrier, Micro SD Board V1.02 and GPS MINI V1.0 NEO-7N-0-002. Use the
-[signal schematic](expansion-wiring.svg) alongside this guide. **IMU VCC and
-GPS VCC are HOLD: unassigned. Do not connect either to a supply yet.** The SD
-supply is a candidate only, subject to the checks below. No powered results are
-claimed. Complete the unpowered wiring inspection and obtain human assembly
-confirmation before compilation, upload or powered testing.
+This is a bench wiring plan for the STM32F429I-DISC1 MB1075, the photographed
+IMU carrier, replacement HW-125 Micro SD Card Adapter and GPS MINI V1.0
+NEO-7N-0-002. Use the [wiring schematic](expansion-wiring.svg) alongside this
+guide. **Recommended inputs: regulated external 3.3 V for IMU and GPS VCC,
+regulated external 5 V for HW-125 VCC.** Every module contact below has a
+connection or an explicit NC (leave disconnected) disposition. The user
+confirmed connections on 2026-11-05; compilation, upload and bounded disarmed
+observations are recorded in the [bench execution record](https://github.com/Mohameddewedar/ardupilot/issues/13)
+and [board README](README.md#bench-verification-2026-11-05). Loaded rails
+remain unmeasured, and the HW-125 socket was empty. For a new assembly,
+complete unpowered wiring inspection before powered testing.
 
 P1 and P2 are the Discovery expansion headers; CN3 and CN4 are not expansion
 headers. Locate P1 and P2 by their PCB designations and pin-1 marks, not by
@@ -19,34 +23,53 @@ Verify the actual board revision and bridges.
 ## Contacts and signal connections
 
 Numbers on the carriers are **local positional aids, not manufacturer pin
-numbers**. IMU: component face up, header left, count top to bottom. SD: socket
-face up, header left, count top to bottom. GPS: battery/component face up,
-header bottom, count left to right. The [original photos and manifest](https://github.com/Mohameddewedar/ardupilot/blob/21b58170b5adfb7547b71440f103bf97c3bd56cf/docs/hardware-evidence/guidance-f429/manifest.md)
+numbers**. IMU: component face up, header left, count top to bottom. SD: use
+the labelled back, with `Micro SD Card Adapter` readable and header left;
+count top to bottom: CS, SCK, MOSI, MISO, VCC, GND. GPS: battery/component face up,
+header bottom, count left to right. The [original photos and manifest](https://github.com/Mohameddewedar/ardupilot/blob/b5c0ccec1b5b52fa391a300ac36512c2e8d8d6ec/docs/hardware-evidence/guidance-f429/manifest.md)
 record the evidence. The IMU back prints both GY6500 and GY9250; the fitted die
-and compass are unconfirmed. The SD back has not been photographed.
+and compass are unconfirmed. The replacement SD front is marked `HW-125`;
+both sides are photographed.
+The former ten-contact Micro SD Board V1.02 and its contact numbers are retired.
 
-| Discovery contact | Signal | Carrier contact |
+| Module contact | Function/disposition | Discovery contact or supply |
 | --- | --- | --- |
-| P1-15 PE2 | SPI4 SCK | IMU 3 SCL/SCLK |
-| P1-11 PE6 | SPI4 MOSI | IMU 4 SDA/SDI |
-| P1-14 PE5 | SPI4 MISO | IMU 7 AD0/SDO |
-| P1-16 PE3 | IMU CS | IMU 9 NCS |
-| P2-6 PF7 | SPI5 SCK | SD 7 CLK/CLK |
-| P2-8 PF9 | SPI5 MOSI | SD 6 MOSI/CMD |
-| P2-5 PF8 | SPI5 MISO | SD 8 MISO/D0 |
-| P1-13 PE4 | SD CS | SD 5 CS/D3 |
-| P1-43 PC12 | UART5 TX | GPS 2 RXD |
-| P1-40 PD2 | UART5 RX | GPS 3 TXD |
-| P1-63 or 64 | GND | IMU 2 GND; SD 3 GND; GPS 4 GND; external supply return |
+| IMU 1 VCC | Power input | Regulated external `EXT_3V3` |
+| IMU 2 GND | Common ground | P1-63 or 64; external supply returns |
+| IMU 3 SCL/SCLK | SPI4 SCK | P1-15 PE2 |
+| IMU 4 SDA/SDI | SPI4 MOSI | P1-11 PE6 |
+| IMU 5 EDA | NC — auxiliary I2C unused | Leave disconnected |
+| IMU 6 ECL | NC — auxiliary I2C unused | Leave disconnected |
+| IMU 7 AD0/SDO | SPI4 MISO | P1-14 PE5 |
+| IMU 8 INT | NC — driver polls | Leave disconnected |
+| IMU 9 NCS | IMU chip select | P1-16 PE3 |
+| IMU 10 FSYNC | Unused synchronization input | Common GND |
+| HW-125 SD 1 CS | SD chip select | P1-13 PE4 |
+| HW-125 SD 2 SCK | SPI5 SCK | P2-6 PF7 |
+| HW-125 SD 3 MOSI | SPI5 MOSI | P2-8 PF9 |
+| HW-125 SD 4 MISO | SPI5 MISO | P2-5 PF8 |
+| HW-125 SD 5 VCC | Regulator input | Regulated external `EXT_5V` |
+| HW-125 SD 6 GND | Common ground | P1-63 or 64; external supply returns |
+| GPS 1 PPS | NC — pulse-per-second output unused | Leave disconnected |
+| GPS 2 RXD | Receives Discovery UART5 TX | P1-43 PC12 |
+| GPS 3 TXD | Drives Discovery UART5 RX | P1-40 PD2 |
+| GPS 4 GND | Common ground | P1-63 or 64; external supply returns |
+| GPS 5 VCC | Power input | Regulated external `EXT_3V3` |
 
-Connect IMU 10 FSYNC to GND **only after unpowered continuity checks establish
-that the carrier does not drive it**; the unused chip input requires ground per
-the [MPU9250](https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf)
+Both external supply returns join Discovery GND and all carrier grounds.
+No Discovery power contact supplies the carriers. See the
+[recommended power plan](#recommended-power-plan) and the
+[HW-125 research note](../../../../docs/research/guidance-f429-hw125-reader.md).
+
+Check FSYNC continuity before assembly to ensure the carrier does not drive
+that contact; its assigned connection is GND, as required for the unused chip
+input by the [MPU9250](https://invensense.tdk.com/wp-content/uploads/2015/02/PS-MPU-9250A-01-v1.1.pdf)
 and [MPU6500](https://invensense.tdk.com/wp-content/uploads/2020/06/PS-MPU-6500A-01-v1.3.pdf)
-specifications. IMU 5 EDA, 6 ECL and 8 INT are unconnected; the driver polls.
-AD0 is SDO in SPI mode: do not strap it as an I2C address. SD 4 NC/D2, 9 NC/D1
-and 10 CD are unused; CD is a switch, not CS. Leave SD 2, the second 3.3V
-contact, externally unconnected pending continuity checks. GPS 1 PPS is unused.
+specifications. AD0 is SDO in SPI mode: do not strap it as an I2C address.
+NC is an intentional disposition, not an unresolved assignment. EDA/ECL,
+INT and PPS have no function in this configuration and must not be tied to
+power or ground. The new reader uses all six header contacts and exposes no
+card-detect or SDIO D1/D2 contacts.
 
 SPI4 carries the external IMU. SPI5 carries SD and the onboard gyro and LCD
 connections. The hwdef declares no active onboard gyro sampling backend;
@@ -64,34 +87,61 @@ more than 32 accumulate. Sharing that lock could therefore lose samples. Separat
 bus locks do not eliminate scheduling or electrical risks; monitor IMU FIFO and
 errors under SD logging load during later testing.
 
-## Power remains unresolved
+## Recommended power plan
 
-SD 1 (labelled 3.3V) is a **candidate** for a regulated external `EXT_3V3`
-supply sized for the actual card's write-current peaks, with its return joined
-to common GND. Never tie `EXT_3V3` to the Discovery P2-1/2 3V rail or parallel
-regulators. The Discovery retains its existing USB supply; do not assume the
-modules fit within the board's less-than-100 mA external application budget.
-IMU 1 VCC and GPS 5 VCC remain unassigned until their carrier regulators and
-power paths are identified. Do not guess their VIN voltage or bypass regulators.
-Prior approximately 2.86 V ST-LINK and 2.92 V estimated VDDA readings and USB
-issues remain unresolved under load.
+The [power datasheet analysis](../../../../docs/research/guidance-f429-power-datasheets.md)
+supports a conservative 3.3 V input recommendation for the IMU and GPS.
+Their chip/module supply limits do not permit direct 5 V. Exact carrier
+regulator identity is not established, so 5 V is not recommended at those
+VCC contacts. A downstream LDO may reduce the internal rail; a safe input
+voltage recommendation is not proof that either carrier will initialize.
+The [HW-125 research](../../../../docs/research/guidance-f429-hw125-reader.md)
+documents the new reader's regulator, buffer and 4.5–5 V carrier input
+specification. The card and buffer operate from its internal nominal 3.3 V
+rail; VCC is the regulator input. Do not connect this reader's VCC to
+`EXT_3V3` expecting its regulator to maintain 3.3 V.
 
-Evidence still needed:
+| Power source | Carrier contact |
+| --- | --- |
+| Regulated external `EXT_3V3` | IMU 1 VCC |
+| Regulated external `EXT_3V3` | GPS 5 VCC |
+| Regulated external `EXT_5V` | HW-125 SD 5 VCC |
+| Both external supply returns and Discovery P1-63 or 64 | IMU 2 GND; SD 6 GND; GPS 4 GND |
 
-- Readable regulator top codes or matching carrier schematics; SD back photo
-  and card make/model.
-- Unpowered continuity from each carrier VCC to regulator IN and regulator
-  OUT to chip rail; check FSYNC, SD power contacts, pulls and MISO paths.
-- Intended external supply current rating, including card write peaks.
-- After assembly confirmation, actual loaded rails and signal logic compatibility.
+Size the 3.3 V supply for the IMU and GPS/carrier/antenna demand. Size the 5 V
+supply for the reader and actual card's write-current peaks. The HW-125
+supplier lists up to 200 mA, so the plan does not rely on the Discovery's
+less-than-100 mA external-load budget. Never connect either external positive
+rail to the Discovery P2-1/2 3V rail, a Discovery 5V contact or another
+regulator output. Discovery retains USB power. Share ground, not supply outputs.
 
-For context only, bare MPU9250 VDD is 2.4–3.6 V and VDDIO 1.71 V to VDD;
-MPU6500's detailed DC table says 1.71–3.45 V for VDD and VDDIO, while its
-overview says 3.6 V. Bare NEO-7N VCC is 2.7–3.6 V and logic inputs 0–VCC;
-its supply sizing is 67 mA plus carrier and antenna demand. Conventional SD
-is 2.7–3.6 V. These are chip/card limits, not carrier VIN ratings. Sources:
-TDK specifications above, [u-blox NEO-7 datasheet](https://content.u-blox.com/sites/default/files/products/documents/NEO-7_DataSheet_(UBX-13003830).pdf)
-and [ST AN5595](https://www.st.com/resource/en/application_note/an5595-spc58xexspc58xgx-multimedia-card-via-spi-interface-stmicroelectronics.pdf).
+The photographed HW-125 has a 1117-family regulator and 74LVC125 buffer.
+Confirm VCC-to-regulator-input and regulator-output-to-card/buffer continuity
+before power-up, then measure the internal rail before connecting signals.
+Supplier documentation and visible markings do not prove hidden routing,
+regulator authenticity or the loaded output voltage of this particular board.
+Keep SPI at 3.3 V logic; 5 V is assigned only to the reader's VCC input.
+
+A comparison reader schematic ties the MISO buffer enable active at all times.
+The actual HW-125 enable wiring remains unverified. This definition uses SD as
+the **only active SPI5 device**, holding the onboard gyro and LCD deselected;
+it does not depend on the reader releasing MISO for another active device.
+Verify inactive PC1/PC2 and reset/power-sequencing behavior. Before enabling
+another SPI5 device, establish that MISO releases when SD CS is high or use
+proper isolation/a separate bus. Do not enable another driver on SPI5 by
+assuming that CS automatically disables this buffer.
+
+For the unchanged IMU/GPS, verify the recommended 3.3 V input produces valid
+loaded chip rails despite any LDO dropout, and check logic compatibility with
+the actual Discovery supply. Earlier approximately 2.86 V ST-LINK and 2.92 V
+estimated VDDA readings and USB issues remain unresolved under load.
+
+Bring-up checks still needed:
+
+- Regulator/buffer power and enable continuity, including HW-125 MISO behavior.
+- Card make/model and supply-current peaks during writing.
+- Unpowered wiring, polarity, FSYNC and chip-select checks.
+- After assembly confirmation, loaded rails and signal logic compatibility.
 
 ## Firmware and future checks
 
@@ -112,12 +162,13 @@ can override defaults. Do not reset all parameters. The u-blox driver scans
 rates and requests binary output; connect both UART directions. See
 [GPS source](../../../AP_GPS/AP_GPS.cpp) and [u-blox setup](../../../AP_GPS/AP_GPS_UBLOX.h).
 
-After human assembly confirmation and power-path resolution, check rails and
-logic levels, sensor identification and orientation, GPS configuration, and SD
+After human assembly confirmation, check the IMU/GPS 3.3 V and reader 5 V
+power arrangement, loaded rails and logic levels, sensor identification and
+orientation, GPS configuration, and SD
 operation, including IMU FIFO/errors under SD logging load. These modules provide
 no barometer; retain truthful errors and arming checks. This guide establishes
 neither normal estimator operation nor flight readiness.
 
-This documentation was prepared with AI assistance. Photo inspection, source
-comparison and static document checks are the scope of this documentation work;
-no compilation, flashing, wiring or powered hardware test was performed here.
+This documentation was prepared with AI assistance. The dated bench record
+distinguishes observed IMU/GPS communications from pending rail measurements,
+calibration, orientation acceptance and inserted-card storage tests.

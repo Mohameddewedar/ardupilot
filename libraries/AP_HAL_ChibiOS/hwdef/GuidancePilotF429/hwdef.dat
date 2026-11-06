@@ -1,4 +1,6 @@
 # User-confirmed hardware: STM32F429I-DISC1 (MB1075), stock Discovery board.
+# Recommended external power: IMU/GPS VCC 3.3 V; HW-125 SD VCC 5 V.
+# Shared GND, separate Discovery USB supply; see expansion-wiring.md.
 MCU STM32F4xx STM32F429xx
 APJ_BOARD_ID 5656
 OSCILLATOR_HZ 8000000
@@ -47,7 +49,8 @@ SPIDEV external_imu SPI4 DEVID1 IMU_CS MODE3 1*MHZ 4*MHZ
 # Intended chip mounting: native +Y forward, +X right, +Z up; verify physically.
 IMU Invensense SPI:external_imu ROTATION_NONE
 
-# SPI5 serves microSD and the onboard gyro; keep the LCD deselected.
+# HW-125 is the only active SPI5 device; keep onboard gyro and LCD deselected.
+# Its MISO buffer may remain driven with SD CS high; verify before active sharing.
 PF7 SPI5_SCK SPI5
 PF8 SPI5_MISO SPI5
 PF9 SPI5_MOSI SPI5
