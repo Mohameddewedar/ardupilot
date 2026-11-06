@@ -1,0 +1,162 @@
+# hwdef.dat for STM32F429 Discovery (MAF429)
+
+# MCU using F427 config
+MCU STM32F4xx STM32F427xx
+OSCILLATOR_HZ 8000000
+APJ_BOARD_ID 1101
+
+FLASH_SIZE_KB 2048
+FLASH_RESERVE_START_KB 16
+STM32_ST_USE_TIMER 5
+
+# USB Config
+# USB Config
+# Discovery board uses OTG2 (HS Core) with Internal FS PHY because PA11/12 are used for LCD.
+# We map OTG2 to the primary SerialUSB driver (USBD1).
+define HAL_USE_USB TRUE
+define HAL_USE_SERIAL_USB TRUE
+define STM32_OTG2_IS_OTG1 TRUE
+define STM32_USB_USE_OTG2 TRUE
+
+USB_STRING_MANUFACTURER "MAF429"
+USB_STRING_PRODUCT "MAF429"
+define USB_USE_OTG2 1
+
+# USB Pins (User Micro-AB CN6)
+# HS with internal FS PHY
+PB14 OTG_HS_DM OTG2
+PB15 OTG_HS_DP OTG2
+
+# VBUS Sensing (User USB)
+# USB VBUS sensing on PB13 - DISABLED to simplify debugging
+# PB13 VBUS INPUT
+
+
+
+# UART1 Config (ST-Link VCP)
+# PA9 acts as TX for MCU (RX for ST-Link)
+# PA10 acts as RX for MCU (TX for ST-Link)
+# NOTE: PA9 is also OTG_FS_VBUS, but since we use PB13 for sensing, we can use PA9 for UART.
+PA9 USART1_TX USART1
+PA10 USART1_RX USART1
+
+# LEDs with proper functions
+PG13 LED_BOOTLOADER OUTPUT LOW GPIO(90) # Green LED
+PG14 LED_ACTIVITY OUTPUT LOW GPIO(91)   # Red LED
+define HAL_GPIO_A_LED_PIN 90
+define HAL_GPIO_B_LED_PIN 91
+define HAL_GPIO_LED_ON 1
+
+# Safety/Arming Switch (onboard button)
+PA0 SAFETY_IN INPUT PULLUP
+define HAL_HAVE_SAFETY_SWITCH 1
+
+# SPI1 for GY-912 Module (ICM-20948 + BMP388)
+# All pins accessible on P1/P2 extension headers
+PA5 SPI1_SCK SPI1
+PA6 SPI1_MISO SPI1
+PA7 SPI1_MOSI SPI1
+
+# SPI Order - Enable SPI1
+SPI_ORDER SPI1
+
+# Chip Select pins for GY-912  
+PE2 IMU_CS CS
+PE3 BARO_CS CS
+
+# SPI Devices for GY-912 Module
+# ICM-20948: 9-axis IMU (Gyro + Accel + Mag via AK09916)
+SPIDEV icm20948 SPI1 DEVID1 IMU_CS MODE3 4*MHZ 8*MHZ
+# BMP388: High-precision barometer
+SPIDEV bmp388 SPI1 DEVID2 BARO_CS MODE3 10*MHZ 10*MHZ
+
+# IMU Configuration (SPI1)
+IMU Invensensev2 SPI:icm20948 ROTATION_NONE
+
+# Barometer Configuration (SPI1)
+BARO BMP388 SPI:bmp388
+
+# Compass Configuration
+# AK09916 magnetometer accessed via ICM-20948's auxiliary I2C
+COMPASS AK09916:probe_ICM20948 0 ROTATION_NONE 
+
+# PWM Output Timers and Channels
+# TIM3 on accessible pins for servo outputs
+PB4 TIM3_CH1 TIM3 PWM(1) GPIO(50)
+PB5 TIM3_CH2 TIM3 PWM(2) GPIO(51) 
+PB0 TIM3_CH3 TIM3 PWM(3) GPIO(52)
+PB1 TIM3_CH4 TIM3 PWM(4) GPIO(53)
+
+# Additional PWM channels on TIM2 (PE pins accessible)
+PE11 TIM1_CH2 TIM1 PWM(5) GPIO(54)
+PE13 TIM1_CH3 TIM1 PWM(6) GPIO(55)
+PE14 TIM1_CH4 TIM1 PWM(7) GPIO(56)
+
+# Buzzer on PWM
+PE9 TIM1_CH1 TIM1 ALARM
+
+# USART2 for GPS (available pins)
+PD5 USART2_TX USART2
+PD6 USART2_RX USART2
+
+# USART6 for Telemetry/Companion Computer
+PC6 USART6_TX USART6  
+PC7 USART6_RX USART6
+
+# USART3 for RC input (SBUS/PPM capable)
+PD8 USART3_TX USART3
+PD9 USART3_RX USART3
+
+# I2C3 for External Sensors
+PA8 I2C3_SCL I2C3
+PC9 I2C3_SDA I2C3
+I2C_ORDER I2C3
+
+# CAN1 (disabled - no transceiver on board)
+# PD0 CAN1_RX CAN1
+# PD1 CAN1_TX CAN1
+
+# ADC channels for battery/current monitoring
+PC3 BATT_VOLTAGE_SENS ADC1 SCALE(1)
+PC0 BATT_CURRENT_SENS ADC1 SCALE(1)
+
+# Safety/Arming switch
+PE0 SAFETY_IN INPUT PULLDOWN
+
+# Relay outputs
+PE4 RELAY1 OUTPUT LOW GPIO(57)
+PE5 RELAY2 OUTPUT LOW GPIO(58)
+
+# Serial port order
+SERIAL_ORDER OTG1 USART1 USART2 USART3 USART6
+
+# Enable compass probing
+define AP_COMPASS_PROBING_ENABLED 1
+
+# RC Input Protocol
+define HAL_RCIN_THREAD_ENABLED 1
+
+# Battery monitoring
+define HAL_BATT_VOLT_PIN 13
+define HAL_BATT_CURR_PIN 12
+define HAL_BATT_VOLT_SCALE 10.1
+define HAL_BATT_CURR_SCALE 17.0
+
+# Serial Order: Native USB (OTG2) then ST-Link VCP
+SERIAL_ORDER OTG1 USART1
+
+
+# Storage - Empty
+define HAL_USE_EMPTY_STORAGE 1
+define HAL_STORAGE_SIZE 16384
+
+# Helper defines for peripherals
+define HAL_USE_ADC TRUE
+define HAL_USE_I2C TRUE
+define HAL_USE_SPI TRUE
+define HAL_USE_PWM TRUE
+define HAL_USE_CAN FALSE
+
+# Performance optimizations
+define CH_CFG_ST_FREQUENCY 1000000
+define STM32_ST_USE_TIMER 5

@@ -1,0 +1,65 @@
+# hwdef-bl.dat for STM32F429 Discovery (MAF429) Bootloader
+
+# MCU class and specific type
+MCU STM32F4xx STM32F427xx
+
+# Crystal frequency
+OSCILLATOR_HZ 8000000
+
+# Board ID for identification
+APJ_BOARD_ID 1101
+
+# Flash configuration
+FLASH_SIZE_KB 2048
+FLASH_BOOTLOADER_LOAD_KB 16
+FLASH_RESERVE_START_KB 0
+
+# ChibiOS system timer
+STM32_ST_USE_TIMER 5
+
+# Bootloader baudrate for UART updates
+define BOOTLOADER_BAUDRATE 115200
+
+# Serial order: USB primary, USART1 secondary for firmware updates
+SERIAL_ORDER OTG1 USART1
+
+# USB configuration (OTG2 HS Core with Internal FS PHY)
+define HAL_USE_USB TRUE
+define HAL_USE_SERIAL_USB TRUE
+define STM32_OTG2_IS_OTG1 TRUE
+define STM32_USB_USE_OTG2 TRUE
+
+# USB string identifiers
+USB_STRING_MANUFACTURER "MAF429"
+USB_STRING_PRODUCT "MAF429"
+
+# USB pins (User Micro-AB CN6)
+PB14 OTG_HS_DM OTG2
+PB15 OTG_HS_DP OTG2
+# PB13 VBUS INPUT OPENDRAIN # Disabled - auto-detect
+
+# USART1 for serial bootloader updates (ST-Link VCP)
+PA9 USART1_TX USART1
+PA10 USART1_RX USART1
+
+# SWD debugging pins
+PA13 JTMS-SWDIO SWD
+PA14 JTCK-SWCLK SWD
+
+# CS pins - ensure high during bootloader to avoid SPI device conflicts
+PE2 IMU_CS CS
+PE3 BARO_CS CS
+
+# LEDs for bootloader status indication
+PG13 LED_BOOTLOADER OUTPUT LOW GPIO(90) # Green LED
+PG14 LED_ACTIVITY OUTPUT LOW GPIO(91)   # Red LED
+define HAL_GPIO_A_LED_PIN 90
+define HAL_GPIO_B_LED_PIN 91
+define HAL_LED_ON 1
+
+# Safety button input
+PA0 SAFETY_IN INPUT PULLUP
+
+# Storage configuration
+define HAL_USE_EMPTY_STORAGE 1
+define HAL_STORAGE_SIZE 16384
