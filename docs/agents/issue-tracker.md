@@ -18,6 +18,12 @@ Infer the repo from `git remote -v`; `gh` does this automatically when run insid
 
 File issues only into the user's own repo (`Mohameddewedar/ardupilot`). Never file into `mattpocock/skills` or `ArduPilot/ardupilot`. Before the first `gh issue create` of a session, check the target with `gh repo view --json nameWithOwner` and confirm it.
 
+Write issue bodies and comments around the task, decisions, evidence and results. Omit AI-assistance attribution from existing and future issues in this fork, as requested by the owner. Pull-request disclosure requirements still apply.
+
+Use repository-relative paths for source files and artifact filenames for evidence retained locally. Keep workstation-specific absolute paths out of issues, committed documentation and commit messages. Express host-dependent command paths through documented environment variables.
+
+For GuidancePilotF429, retain task artifacts inside the ignored workspace layout documented in [the board development guide](../../libraries/AP_HAL_ChibiOS/hwdef/GuidancePilotF429/development.md), including delegation briefs and outputs.
+
 ## Pull requests as a triage surface
 
 **PRs as a request surface: no.**

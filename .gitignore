@@ -173,3 +173,15 @@ env.bak/
 venv.bak/
 autotest_result_*_junit.xml
 .python-version
+
+# AI assistant and agent settings
+/.agents/
+/.claude/
+/.gemini/
+/.antigravity/
+/.cursor/
+skills-lock.json
+
+# Local GuidancePilotF429 tools, worktrees, downloads and bench evidence
+/.local/guidance-f429/
+/.delegate/
