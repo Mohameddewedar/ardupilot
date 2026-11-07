@@ -1,6 +1,6 @@
 # User-confirmed hardware: STM32F429I-DISC1 (MB1075), stock Discovery board.
 # Recommended external power: IMU/GPS VCC 3.3 V; HW-125 SD VCC 5 V.
-# Shared GND, separate Discovery USB supply; see expansion-wiring.md.
+# Shared GND, separate Discovery USB supply; see https://github.com/Mohameddewedar/GuidancePilot/blob/main/docs/hardware/guidance-f429/expansion-wiring.md.
 MCU STM32F4xx STM32F429xx
 APJ_BOARD_ID 5656
 OSCILLATOR_HZ 8000000

@@ -15,7 +15,7 @@ Discovery keeps its separate USB supply. Internal carrier rails remain
 unmeasured; the bounded bench observations below establish communications,
 not calibrated sensor or storage health. Every module contact has an explicit connection
 or NC disposition in the
-[expansion wiring guide](expansion-wiring.md) and [signal schematic](expansion-wiring.svg).
+[expansion wiring guide](https://github.com/Mohameddewedar/GuidancePilot/blob/main/docs/hardware/guidance-f429/expansion-wiring.md) and [signal schematic](https://github.com/Mohameddewedar/GuidancePilot/blob/main/docs/hardware/guidance-f429/expansion-wiring.svg).
 No barometer is supplied by these modules. Preserve configuration errors and
 arming checks; normal estimator operation and flight readiness are not established.
 There are no PWM outputs configured. The LCD and external SDRAM are unused.
@@ -113,7 +113,7 @@ check does not establish normal vehicle initialization or sensor health.
 Hardware references and driver constraints are recorded in the
 [AI-assisted Discovery research note](https://github.com/Mohameddewedar/ardupilot/blob/research/guidance-f429-discovery/docs/research/guidance-f429-discovery.md).
 
-The [local development layout](development.md) records which files belong in
+The [local development layout](https://github.com/Mohameddewedar/GuidancePilot/blob/main/docs/hardware/guidance-f429/development.md) records which files belong in
 Git and where to retain tools, datasheets, worktrees and bench evidence.
 
 This documentation update was AI-assisted. The dated bench results above do

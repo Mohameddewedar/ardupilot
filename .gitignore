@@ -185,3 +185,11 @@ skills-lock.json
 # Local GuidancePilotF429 tools, worktrees, downloads and bench evidence
 /.local/guidance-f429/
 /.delegate/
+
+# Project workspace documents live in the parent GuidancePilot repository.
+/docs/agents/
+/docs/research/guidance-f429-hw125-reader.md
+/docs/research/guidance-f429-power-datasheets.md
+/libraries/AP_HAL_ChibiOS/hwdef/GuidancePilotF429/development.md
+/libraries/AP_HAL_ChibiOS/hwdef/GuidancePilotF429/expansion-wiring.md
+/libraries/AP_HAL_ChibiOS/hwdef/GuidancePilotF429/expansion-wiring.svg
